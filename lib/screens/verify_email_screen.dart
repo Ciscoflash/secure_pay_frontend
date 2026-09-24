@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
 import '../controllers/auth_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
@@ -9,49 +8,37 @@ import '../widgets/auth_layout.dart';
 import '../widgets/inline_link_text.dart';
 import '../widgets/primary_button.dart';
 import 'routes.dart';
-
-/// Gates the app behind email verification: shows the 5-digit code prompt and
-/// only sends the user on to the dashboard once the code checks out.
 class VerifyEmailScreen extends StatefulWidget {
   const VerifyEmailScreen({super.key});
-
   @override
   State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
 }
-
 class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   final _auth = Get.find<AuthController>();
   final _formKey = GlobalKey<FormState>();
   final _code = TextEditingController();
   var _autovalidate = AutovalidateMode.disabled;
-
   @override
   void initState() {
     super.initState();
-    // The profile is re-fetched on startup; if the server says the account is
-    // already verified, skip straight to the dashboard.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _auth.isVerified) {
         Get.offAllNamed(Routes.dashboard);
       }
     });
   }
-
   @override
   void dispose() {
     _code.dispose();
     super.dispose();
   }
-
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
       return;
     }
-
     final success = await _auth.verifyEmail(_code.text.trim());
     if (!mounted) return;
-
     if (!success) {
       Get.snackbar(
         'Verification failed',
@@ -60,14 +47,11 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       );
       return;
     }
-
     Get.offAllNamed(Routes.dashboard);
   }
-
   Future<void> _resend() async {
     final success = await _auth.resendVerification();
     if (!mounted) return;
-
     Get.snackbar(
       success ? 'Code sent' : 'Could not send code',
       success
@@ -76,12 +60,10 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       snackPosition: SnackPosition.BOTTOM,
     );
   }
-
   Future<void> _signOut() async {
     await _auth.logout();
     Get.offAllNamed(Routes.signIn);
   }
-
   @override
   Widget build(BuildContext context) {
     final email = _auth.user?.email ?? '';

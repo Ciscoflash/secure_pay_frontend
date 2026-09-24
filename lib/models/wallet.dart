@@ -1,4 +1,3 @@
-/// One wallet transaction from the backend ledger.
 class WalletTransaction {
   const WalletTransaction({
     required this.id,
@@ -8,20 +7,13 @@ class WalletTransaction {
     required this.description,
     this.createdAt,
   });
-
   final String id;
   final String type;
-
-  /// Kobo.
   final int amount;
-
-  /// Wallet balance after this entry, in kobo.
   final int balanceAfter;
   final String description;
   final DateTime? createdAt;
-
   bool get isCredit => type == 'credit';
-
   factory WalletTransaction.fromJson(Map<String, dynamic> json) =>
       WalletTransaction(
         id: json['id']?.toString() ?? '',
@@ -33,8 +25,6 @@ class WalletTransaction {
             DateTime.tryParse(json['createdAt']?.toString() ?? '')?.toLocal(),
       );
 }
-
-/// Snapshot of the user's wallet: balance plus the recent ledger entries.
 class WalletAccount {
   const WalletAccount({
     required this.balance,
@@ -42,22 +32,16 @@ class WalletAccount {
     required this.bankName,
     required this.transactions,
   });
-
-  /// Kobo.
   final int balance;
-
-  /// 10-digit number transfers are sent to.
   final String accountNumber;
   final String bankName;
   final List<WalletTransaction> transactions;
-
   WalletAccount copyWith({int? balance}) => WalletAccount(
     balance: balance ?? this.balance,
     accountNumber: accountNumber,
     bankName: bankName,
     transactions: transactions,
   );
-
   factory WalletAccount.fromJson(Map<String, dynamic> json) => WalletAccount(
     balance: (json['balance'] as num?)?.toInt() ?? 0,
     accountNumber: json['accountNumber']?.toString() ?? '',

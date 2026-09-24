@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import '../models/country_code.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import 'line_icons.dart';
-
 export '../models/country_code.dart';
-
 final _inputTextStyle = AppText.style(
   16,
   color: AppColors.textPrimary,
   height: 1.5,
   letterSpacing: -0.2,
 );
-
 final _placeholderStyle = AppText.style(
   16,
   weight: 300,
@@ -22,7 +18,6 @@ final _placeholderStyle = AppText.style(
   height: 1.5,
   letterSpacing: -0.2,
 );
-
 InputDecoration _decoration({
   required String hint,
   Widget? prefix,
@@ -32,7 +27,6 @@ InputDecoration _decoration({
     borderRadius: BorderRadius.circular(6),
     borderSide: BorderSide(color: color),
   );
-
   return InputDecoration(
     hintText: hint,
     hintStyle: _placeholderStyle,
@@ -51,8 +45,6 @@ InputDecoration _decoration({
     focusedErrorBorder: border(AppColors.error),
   );
 }
-
-/// Label above a 48px outlined input, as in the auth designs.
 class AuthTextField extends StatelessWidget {
   const AuthTextField({
     super.key,
@@ -65,7 +57,6 @@ class AuthTextField extends StatelessWidget {
     this.validator,
     this.onFieldSubmitted,
   });
-
   final String label;
   final String hint;
   final TextEditingController? controller;
@@ -74,7 +65,6 @@ class AuthTextField extends StatelessWidget {
   final Iterable<String>? autofillHints;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onFieldSubmitted;
-
   @override
   Widget build(BuildContext context) {
     return FieldLabel(
@@ -92,7 +82,6 @@ class AuthTextField extends StatelessWidget {
     );
   }
 }
-
 class PasswordField extends StatefulWidget {
   const PasswordField({
     super.key,
@@ -103,21 +92,17 @@ class PasswordField extends StatefulWidget {
     this.onFieldSubmitted,
     this.maxLength,
   });
-
   final String label;
   final TextEditingController? controller;
   final Iterable<String> autofillHints;
   final FormFieldValidator<String>? validator;
   final ValueChanged<String>? onFieldSubmitted;
   final int? maxLength;
-
   @override
   State<PasswordField> createState() => _PasswordFieldState();
 }
-
 class _PasswordFieldState extends State<PasswordField> {
   bool _obscured = true;
-
   @override
   Widget build(BuildContext context) {
     return FieldLabel(
@@ -151,8 +136,6 @@ class _PasswordFieldState extends State<PasswordField> {
     );
   }
 }
-
-/// Phone input with an inline "+234 ⌄" country-code picker.
 class PhoneField extends StatelessWidget {
   const PhoneField({
     super.key,
@@ -162,13 +145,11 @@ class PhoneField extends StatelessWidget {
     this.validator,
     this.autovalidateMode,
   });
-
   final CountryCode countryCode;
   final ValueChanged<CountryCode> onCountryCodeChanged;
   final TextEditingController? controller;
   final FormFieldValidator<String>? validator;
   final AutovalidateMode? autovalidateMode;
-
   @override
   Widget build(BuildContext context) {
     return FieldLabel(
@@ -220,14 +201,10 @@ class PhoneField extends StatelessWidget {
     );
   }
 }
-
-/// A 16px label sitting 8px above its field.
 class FieldLabel extends StatelessWidget {
   const FieldLabel({super.key, required this.label, required this.child});
-
   final String label;
   final Widget child;
-
   @override
   Widget build(BuildContext context) {
     return Column(

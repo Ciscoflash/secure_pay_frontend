@@ -1,9 +1,7 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'bindings/auth_binding.dart';
 import 'bindings/dashboard_binding.dart';
 import 'screens/dashboard_screen.dart';
@@ -15,7 +13,6 @@ import 'screens/verify_email_screen.dart';
 import 'services/auth_service.dart';
 import 'services/dashboard_service.dart';
 import 'theme/app_theme.dart';
-
 class SecurePayApp extends StatelessWidget {
   const SecurePayApp({
     super.key,
@@ -23,13 +20,9 @@ class SecurePayApp extends StatelessWidget {
     this.authService,
     this.dashboardService,
   });
-
   final SharedPreferences prefs;
-
-  /// Overridable for tests.
   final AuthService? authService;
   final DashboardService? dashboardService;
-
   @override
   Widget build(BuildContext context) {
     final signedIn = prefs.getString('auth_token') != null;
@@ -66,9 +59,6 @@ class SecurePayApp extends StatelessWidget {
       ],
     );
   }
-
-  /// Reads the cached profile so a restart skips the code prompt for accounts
-  /// that are already verified. The guards re-check against live state.
   bool _cachedUserVerified() {
     final raw = prefs.getString('auth_user');
     if (raw == null) return false;

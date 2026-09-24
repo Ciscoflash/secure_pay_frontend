@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
-
 import '../../models/shipment.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../utils/formatters.dart';
 import 'app_icon.dart';
-
-/// Expandable shipment summary: IDs and parties, route and status, then
-/// processing time with actions. Collapsing hides everything below the IDs.
 class ShipmentCard extends StatefulWidget {
   const ShipmentCard({
     super.key,
@@ -17,22 +13,16 @@ class ShipmentCard extends StatefulWidget {
     this.isPaying = false,
     this.initiallyExpanded = true,
   });
-
   final Shipment shipment;
   final VoidCallback onViewMore;
   final VoidCallback onPayNow;
-
-  /// Shows a spinner on Pay Now while the payment request is in flight.
   final bool isPaying;
   final bool initiallyExpanded;
-
   @override
   State<ShipmentCard> createState() => _ShipmentCardState();
 }
-
 class _ShipmentCardState extends State<ShipmentCard> {
   late bool _expanded = widget.initiallyExpanded;
-
   @override
   Widget build(BuildContext context) {
     final s = widget.shipment;
@@ -115,7 +105,6 @@ class _ShipmentCardState extends State<ShipmentCard> {
       },
     );
   }
-
   Widget _details(Shipment s, bool compact) {
     final processing = _Field(
       label: 'Processing time',
@@ -144,7 +133,6 @@ class _ShipmentCardState extends State<ShipmentCard> {
           ),
       ],
     );
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -190,20 +178,15 @@ class _ShipmentCardState extends State<ShipmentCard> {
     );
   }
 }
-
-/// Lays fields out as proportional columns, or as a wrapping flow on narrow
-/// cards. A null flex keeps the cell at its natural width.
 class _Cells extends StatelessWidget {
   const _Cells({
     required this.compact,
     required this.cells,
     this.crossAxisAlignment = CrossAxisAlignment.center,
   });
-
   final bool compact;
   final List<(int?, Widget)> cells;
   final CrossAxisAlignment crossAxisAlignment;
-
   @override
   Widget build(BuildContext context) {
     if (compact) {
@@ -231,14 +214,11 @@ class _Cells extends StatelessWidget {
     );
   }
 }
-
 class _Field extends StatelessWidget {
   const _Field({required this.label, required this.child, this.gap = 5});
-
   final String label;
   final Widget child;
   final double gap;
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -260,13 +240,10 @@ class _Field extends StatelessWidget {
     );
   }
 }
-
 class _Value extends StatelessWidget {
   const _Value(this.text, {this.color = AppColors.textPrimary});
-
   final String text;
   final Color color;
-
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -276,12 +253,9 @@ class _Value extends StatelessWidget {
     );
   }
 }
-
 class _Place extends StatelessWidget {
   const _Place(this.place);
-
   final Place place;
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -297,10 +271,8 @@ class _Place extends StatelessWidget {
     );
   }
 }
-
 class _NigeriaFlag extends StatelessWidget {
   const _NigeriaFlag();
-
   @override
   Widget build(BuildContext context) {
     const green = Color(0xFF449852);
@@ -324,14 +296,9 @@ class _NigeriaFlag extends StatelessWidget {
     );
   }
 }
-
-/// Fallback for countries without a drawn flag: the ISO code in a chip the
-/// same size as the flag.
 class _CountryBadge extends StatelessWidget {
   const _CountryBadge(this.code);
-
   final String code;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -349,12 +316,9 @@ class _CountryBadge extends StatelessWidget {
     );
   }
 }
-
 class _StatusPill extends StatelessWidget {
   const _StatusPill(this.status);
-
   final ShipmentStatus status;
-
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = switch (status) {
@@ -387,7 +351,6 @@ class _StatusPill extends StatelessWidget {
     );
   }
 }
-
 class _CardButton extends StatelessWidget {
   const _CardButton.outlined(this.label, {required this.onTap})
     : _style = _ButtonStyle.outlined,
@@ -401,12 +364,10 @@ class _CardButton extends StatelessWidget {
     : onTap = null,
       isLoading = false,
       _style = _ButtonStyle.disabled;
-
   final String label;
   final VoidCallback? onTap;
   final bool isLoading;
   final _ButtonStyle _style;
-
   @override
   Widget build(BuildContext context) {
     final (bg, fg, border, height) = switch (_style) {
@@ -429,7 +390,6 @@ class _CardButton extends StatelessWidget {
         33.0,
       ),
     };
-
     return Container(
       height: height,
       decoration: BoxDecoration(
@@ -477,5 +437,4 @@ class _CardButton extends StatelessWidget {
     );
   }
 }
-
 enum _ButtonStyle { outlined, filled, disabled }

@@ -1,29 +1,20 @@
 import 'package:get/get.dart';
-
 import '../models/notification.dart';
 import '../services/api_client.dart';
 import '../services/dashboard_service.dart';
 import 'auth_controller.dart';
 import 'dashboard_controller.dart' show Section;
-
-/// Loads the user's notifications and tracks the unread count for the
-/// sidebar badge. Readers refresh in place so the list never blanks.
 class NotificationsController extends GetxController {
   NotificationsController(this._service, this._auth);
-
   final DashboardService _service;
   final AuthController _auth;
-
   final page = Rx<Section<NotificationPage>>(const Section.loading());
-
   int get unread => page.value.data?.unread ?? 0;
-
   @override
   void onInit() {
     super.onInit();
     load();
   }
-
   Future<void> load() async {
     page.value = Section.loading(page.value.data);
     try {
@@ -32,10 +23,7 @@ class NotificationsController extends GetxController {
       page.value = Section.error(e.message, page.value.data);
     }
   }
-
-  /// Marks a single notification read optimistically. On failure the full
-  /// list reloads so the badge and items stay truthful.
-  Future<void> markRead(AppNotification notification) async {
+Future<void> markRead(AppNotification notification) async {
     if (notification.read) return;
     _apply(
       (p) => p.copyWith(
@@ -54,7 +42,6 @@ class NotificationsController extends GetxController {
       load();
     }
   }
-
   Future<void> markAllRead() async {
     if (unread == 0) return;
     _apply(
@@ -69,14 +56,11 @@ class NotificationsController extends GetxController {
       load();
     }
   }
-
   void _apply(NotificationPage Function(NotificationPage p) change) {
     final current = page.value.data;
     if (current == null) return;
     page.value = Section.data(change(current));
   }
-
-  /// Runs [call] with the session token; a 401 ends the session.
   Future<T> _authed<T>(Future<T> Function(String token) call) async {
     final token = _auth.token;
     if (token == null) {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../controllers/auth_controller.dart';
 import '../utils/validators.dart';
 import '../widgets/auth_layout.dart';
@@ -9,39 +8,32 @@ import '../widgets/inline_link_text.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/terms_notice.dart';
 import 'routes.dart';
-
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
-
   @override
   State<SignInScreen> createState() => _SignInScreenState();
 }
-
 class _SignInScreenState extends State<SignInScreen> {
   final _auth = Get.find<AuthController>();
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
   var _autovalidate = AutovalidateMode.disabled;
-
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
     super.dispose();
   }
-
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
       return;
     }
-
     final success = await _auth.signIn(
       email: _email.text.trim(),
       password: _password.text,
     );
-
     if (!success) {
       Get.snackbar(
         'Sign in failed',
@@ -50,10 +42,8 @@ class _SignInScreenState extends State<SignInScreen> {
       );
       return;
     }
-
     Get.offAllNamed(_auth.isVerified ? Routes.dashboard : Routes.verifyEmail);
   }
-
   @override
   Widget build(BuildContext context) {
     return AuthLayout(
@@ -105,7 +95,6 @@ class _SignInScreenState extends State<SignInScreen> {
                   TextSegment.link(
                     'Forgot Password?',
                     onTap: () {
-                      // TODO: forgot-password flow.
                     },
                   ),
                 ],

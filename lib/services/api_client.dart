@@ -1,48 +1,31 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import '../core/config.dart';
-
-/// Error thrown when the backend responds with a non-2xx status, or when the
-/// request cannot reach the server.
 class ApiException implements Exception {
   ApiException(this.message, {this.statusCode, this.details});
-
   final String message;
   final int? statusCode;
   final Map<String, dynamic>? details;
-
   @override
   String toString() => message;
 }
-
-/// Thin wrapper around [http.Client] that speaks the backend's envelope:
-/// `{ success, message, statusCode, data }`.
-///
-/// Throws [ApiException] on any failure so callers can surface it cleanly.
 class ApiClient {
   ApiClient({this.baseUrl = ApiConfig.baseUrl, http.Client? client})
     : _client = client ?? http.Client();
-
   final String baseUrl;
   final http.Client _client;
-
   static const _timeout = Duration(seconds: 20);
-
   Future<Map<String, dynamic>> post(
     String path,
     Map<String, dynamic> body, {
     String? token,
   }) => _send('POST', path, body: body, token: token);
-
   Future<Map<String, dynamic>> get(
     String path, {
     String? token,
     Map<String, String>? query,
   }) => _send('GET', path, token: token, query: query);
-
   Future<Map<String, dynamic>> _send(
     String method,
     String path, {
@@ -58,7 +41,6 @@ class ApiClient {
       'Accept': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
-
     final http.Response response;
     try {
       response = await _request(method, uri, headers, body).timeout(_timeout);
@@ -69,7 +51,6 @@ class ApiClient {
     } catch (_) {
       throw ApiException('A network error occurred. Please try again.');
     }
-
     final Map<String, dynamic> envelope;
     try {
       final decoded = jsonDecode(response.body);
@@ -80,7 +61,6 @@ class ApiClient {
     } on FormatException {
       throw ApiException('Unexpected response from the server.');
     }
-
     if (response.statusCode >= 400) {
       throw ApiException(
         envelope['message']?.toString() ?? 'Request failed',
@@ -88,10 +68,8 @@ class ApiClient {
         details: _asStringMap(envelope['errors']),
       );
     }
-
     return envelope;
   }
-
   Future<http.Response> _request(
     String method,
     Uri uri,
@@ -109,7 +87,6 @@ class ApiClient {
         );
     }
   }
-
   Map<String, dynamic>? _asStringMap(Object? value) {
     if (value is Map<String, dynamic>) return value;
     return null;

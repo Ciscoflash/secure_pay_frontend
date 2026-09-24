@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../controllers/auth_controller.dart';
 import '../utils/password_policy.dart';
 import '../utils/validators.dart';
@@ -11,14 +10,11 @@ import '../widgets/password_strength.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/terms_notice.dart';
 import 'routes.dart';
-
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
-
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
-
 class _SignUpScreenState extends State<SignUpScreen> {
   final _auth = Get.find<AuthController>();
   final _formKey = GlobalKey<FormState>();
@@ -29,7 +25,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _password = TextEditingController();
   var _countryCode = countryCodes.first;
   var _autovalidate = AutovalidateMode.disabled;
-
   @override
   void dispose() {
     for (final c in [_firstName, _lastName, _email, _phone, _password]) {
@@ -37,13 +32,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     super.dispose();
   }
-
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
       return;
     }
-
     final success = await _auth.signUp(
       firstName: _firstName.text.trim(),
       lastName: _lastName.text.trim(),
@@ -52,7 +45,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       countryCode: _countryCode.dialCode,
       password: _password.text,
     );
-
     if (!success) {
       Get.snackbar(
         'Sign up failed',
@@ -61,10 +53,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
       return;
     }
-
     Get.offAllNamed(_auth.isVerified ? Routes.dashboard : Routes.verifyEmail);
   }
-
   @override
   Widget build(BuildContext context) {
     return AuthLayout(

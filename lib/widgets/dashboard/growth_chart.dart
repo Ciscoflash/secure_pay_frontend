@@ -1,16 +1,11 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-
 import '../../models/dashboard.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import 'section_states.dart';
-
-/// Tab order in the design: Year, Month, Week.
 const _ranges = [Period.year, Period.month, Period.week];
-
 extension on Period {
   String get tabLabel => switch (this) {
     Period.year => 'Year',
@@ -18,9 +13,6 @@ extension on Period {
     Period.week => 'Week',
   };
 }
-
-/// "Company Growth" card: title, Year/Month/Week switch and a smooth area chart
-/// of shipments per month (year), per day (month) or per weekday (week).
 class GrowthChartCard extends StatelessWidget {
   const GrowthChartCard({
     super.key,
@@ -32,7 +24,6 @@ class GrowthChartCard extends StatelessWidget {
     this.error,
     this.onRetry,
   });
-
   final List<double> values;
   final List<String> labels;
   final Period range;
@@ -40,9 +31,7 @@ class GrowthChartCard extends StatelessWidget {
   final bool isLoading;
   final String? error;
   final VoidCallback? onRetry;
-
   bool get _isEmpty => values.every((v) => v == 0);
-
   @override
   Widget build(BuildContext context) {
     final compact = MediaQuery.sizeOf(context).width < 600;
@@ -123,7 +112,6 @@ class GrowthChartCard extends StatelessWidget {
       ),
     );
   }
-
   String _semanticsLabel() {
     if (values.isEmpty || _isEmpty) {
       return 'Company growth chart. No shipments in this period.';
@@ -136,18 +124,15 @@ class GrowthChartCard extends StatelessWidget {
         '${range == Period.year ? 'month' : 'day'}. ${points.join(', ')}';
   }
 }
-
 class _RangeSwitch extends StatelessWidget {
   const _RangeSwitch({
     required this.value,
     required this.onChanged,
     required this.segmentWidth,
   });
-
   final Period value;
   final ValueChanged<Period> onChanged;
   final double segmentWidth;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -206,20 +191,14 @@ class _RangeSwitch extends StatelessWidget {
     );
   }
 }
-
 class _AreaChartPainter extends CustomPainter {
   _AreaChartPainter({required this.values, required this.labels});
-
   final List<double> values;
   final List<String> labels;
-
   static const _gridSteps = 5;
-  static const _axisGutter = 54.0; // y-axis labels + gap before the grid
+  static const _axisGutter = 54.0;
   static const _xLabelBand = 24.0;
   static const _minLabelSpacing = 28.0;
-
-  /// Rounds [max] up to a "nice" axis top divisible into [_gridSteps] steps
-  /// (e.g. 98 → 100, 12 → 15, 3 → 5).
   static double niceMax(double max) {
     if (max <= 0) return _gridSteps.toDouble();
     final rawStep = max / _gridSteps;
@@ -229,13 +208,11 @@ class _AreaChartPainter extends CustomPainter {
     for (final m in const [1.0, 2.0, 2.5, 5.0, 10.0]) {
       final step = m * magnitude;
       if (step * _gridSteps >= max) {
-        // Keep whole-number steps; counts are integers.
         return math.max(step.ceilToDouble(), 1.0) * _gridSteps;
       }
     }
     return max;
   }
-
   @override
   void paint(Canvas canvas, Size size) {
     final axisStyle = AppText.style(12, color: AppColors.chartAxis);
@@ -245,10 +222,7 @@ class _AreaChartPainter extends CustomPainter {
     final plotBottom = size.height - _xLabelBand;
     final plotHeight = plotBottom - plotTop;
     final maxValue = niceMax(values.fold(0.0, math.max));
-
     double yFor(double v) => plotBottom - (v / maxValue) * plotHeight;
-
-    // Grid: dashed lines for each step, solid baseline at 0.
     final gridPaint = Paint()
       ..color = AppColors.chartGrid
       ..strokeWidth = 1;
@@ -280,10 +254,7 @@ class _AreaChartPainter extends CustomPainter {
         align: _Align.right,
       );
     }
-
     if (values.length < 2) return;
-
-    // Data points sit inside the grid with the design's side insets.
     final plotWidth = plotRight - plotLeft;
     final firstX = plotLeft + plotWidth * 0.0502;
     final lastX = plotRight - plotWidth * 0.0407;
@@ -292,7 +263,6 @@ class _AreaChartPainter extends CustomPainter {
       for (var i = 0; i < values.length; i++)
         Offset(firstX + step * i, yFor(values[i])),
     ];
-
     final line = _smoothPath(points, plotTop, plotBottom);
     final area = Path.from(line)
       ..lineTo(points.last.dx, plotBottom)
@@ -319,8 +289,6 @@ class _AreaChartPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
-
-    // Thin out x labels when they would collide (e.g. 31 days of a month).
     final every = math.max(1, (_minLabelSpacing / step).ceil());
     for (var i = 0; i < labels.length && i < points.length; i++) {
       if (i % every != 0) continue;
@@ -333,9 +301,6 @@ class _AreaChartPainter extends CustomPainter {
       );
     }
   }
-
-  /// Catmull-Rom spline through [points], as cubic Béziers. Control points are
-  /// clamped to the plot so the curve never dips below zero.
   Path _smoothPath(List<Offset> points, double top, double bottom) {
     Offset clampY(Offset o) => Offset(o.dx, o.dy.clamp(top, bottom));
     final path = Path()..moveTo(points.first.dx, points.first.dy);
@@ -350,7 +315,6 @@ class _AreaChartPainter extends CustomPainter {
     }
     return path;
   }
-
   void _drawText(
     Canvas canvas,
     String text,
@@ -369,7 +333,6 @@ class _AreaChartPainter extends CustomPainter {
     painter.paint(canvas, Offset(dx, anchor.dy - painter.height / 2));
     painter.dispose();
   }
-
   static String _formatThousands(int n) {
     final s = n.toString();
     final buf = StringBuffer();
@@ -379,11 +342,9 @@ class _AreaChartPainter extends CustomPainter {
     }
     return buf.toString();
   }
-
   @override
   bool shouldRepaint(_AreaChartPainter old) =>
       !_listEquals(old.values, values) || !_listEquals(old.labels, labels);
-
   static bool _listEquals<T>(List<T> a, List<T> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
@@ -392,5 +353,4 @@ class _AreaChartPainter extends CustomPainter {
     return true;
   }
 }
-
 enum _Align { right, center }

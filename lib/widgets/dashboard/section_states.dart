@@ -1,31 +1,23 @@
 import 'package:flutter/material.dart';
-
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
-
-/// Pulsing placeholder shown while a section loads for the first time.
 class SectionLoading extends StatefulWidget {
   const SectionLoading({super.key, required this.height});
-
   final double height;
-
   @override
   State<SectionLoading> createState() => _SectionLoadingState();
 }
-
 class _SectionLoadingState extends State<SectionLoading>
     with SingleTickerProviderStateMixin {
   late final _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
   )..repeat(reverse: true);
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -46,7 +38,6 @@ class _SectionLoadingState extends State<SectionLoading>
     );
   }
 }
-
 class SectionError extends StatelessWidget {
   const SectionError({
     super.key,
@@ -54,11 +45,9 @@ class SectionError extends StatelessWidget {
     required this.onRetry,
     this.height,
   });
-
   final String message;
   final VoidCallback onRetry;
   final double? height;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -92,13 +81,10 @@ class SectionError extends StatelessWidget {
     );
   }
 }
-
 class SectionEmpty extends StatelessWidget {
   const SectionEmpty({super.key, required this.title, required this.message});
-
   final String title;
   final String message;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -125,9 +111,6 @@ class SectionEmpty extends StatelessWidget {
     );
   }
 }
-
-/// Keeps already-loaded content visible while it refreshes, dimmed, with a
-/// small spinner; shows a retry strip if the refresh failed.
 class ReloadingOverlay extends StatelessWidget {
   const ReloadingOverlay({
     super.key,
@@ -136,12 +119,10 @@ class ReloadingOverlay extends StatelessWidget {
     this.error,
     this.onRetry,
   });
-
   final bool isLoading;
   final String? error;
   final VoidCallback? onRetry;
   final Widget child;
-
   @override
   Widget build(BuildContext context) {
     return Column(

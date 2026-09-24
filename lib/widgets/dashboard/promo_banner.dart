@@ -1,35 +1,25 @@
 import 'package:flutter/material.dart';
-
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
-
 class PromoSlide {
   const PromoSlide({required this.headline});
-
   final String headline;
 }
-
-/// Navy promo carousel with the globe illustration and page dots below.
 class PromoCarousel extends StatefulWidget {
   const PromoCarousel({super.key, required this.slides, this.initialPage = 0});
-
   final List<PromoSlide> slides;
   final int initialPage;
-
   @override
   State<PromoCarousel> createState() => _PromoCarouselState();
 }
-
 class _PromoCarouselState extends State<PromoCarousel> {
   late final _controller = PageController(initialPage: widget.initialPage);
   late int _page = widget.initialPage;
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -81,19 +71,14 @@ class _PromoCarouselState extends State<PromoCarousel> {
     );
   }
 }
-
 class _Banner extends StatelessWidget {
   const _Banner({required this.slide});
-
   final PromoSlide slide;
-
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(5),
       child: DecoratedBox(
-        // The stripe artwork is grayscale; multiplying it onto the navy gives
-        // the subtle diagonal texture from the design.
         decoration: const BoxDecoration(
           color: AppColors.navy,
           image: DecorationImage(

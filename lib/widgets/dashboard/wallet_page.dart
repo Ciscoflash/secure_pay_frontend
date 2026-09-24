@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
 import '../../controllers/dashboard_controller.dart' show Section;
 import '../../controllers/wallet_controller.dart';
 import '../../models/wallet.dart';
@@ -12,27 +11,18 @@ import 'app_icon.dart';
 import 'dashboard_dialogs.dart' show showFundWalletDialog;
 import 'overview_cards.dart' show BalanceCard;
 import 'section_states.dart';
-
-/// The sidebar "Wallet" destination: balance, the account number used to
-/// fund it, and recent transactions.
 class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
-
   @override
   State<WalletPage> createState() => _WalletPageState();
 }
-
 class _WalletPageState extends State<WalletPage> {
   WalletController get _ctrl => Get.find<WalletController>();
-
   @override
   void initState() {
     super.initState();
-    // Refresh every time the destination is opened so figures stay current.
-    // Post-frame, because load() publishes state and initState runs mid-build.
     WidgetsBinding.instance.addPostFrameCallback((_) => _ctrl.load());
   }
-
   void _toast(String title, String message, {bool error = false}) {
     Get.snackbar(
       title,
@@ -46,7 +36,6 @@ class _WalletPageState extends State<WalletPage> {
       borderWidth: 1,
     );
   }
-
   Future<void> _fund() async {
     final funded = await showFundWalletDialog(context, onSubmit: _ctrl.fundWallet);
     if (funded == null) return;
@@ -56,7 +45,6 @@ class _WalletPageState extends State<WalletPage> {
     );
     _ctrl.load();
   }
-
   @override
   Widget build(BuildContext context) {
     final gutter = MediaQuery.sizeOf(context).width < 600 ? 16.0 : 28.0;
@@ -77,13 +65,10 @@ class _WalletPageState extends State<WalletPage> {
     });
   }
 }
-
 class _WalletCards extends StatelessWidget {
   const _WalletCards({required this.section, required this.onFund});
-
   final Section<WalletAccount> section;
   final VoidCallback onFund;
-
   @override
   Widget build(BuildContext context) {
     final data = section.data;
@@ -96,13 +81,11 @@ class _WalletCards extends StatelessWidget {
               height: 164,
             );
     }
-
     final balance = BalanceCard(
       balance: formatNaira(data.balance),
       onFundWallet: onFund,
     );
     final account = AccountCard(account: data);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -143,21 +126,14 @@ class _WalletCards extends StatelessWidget {
     );
   }
 }
-
-/// White card showing the bank, the 10-digit account number and a copy
-/// button, so users know exactly where to send funds.
 class AccountCard extends StatefulWidget {
   const AccountCard({super.key, required this.account});
-
   final WalletAccount account;
-
   @override
   State<AccountCard> createState() => _AccountCardState();
 }
-
 class _AccountCardState extends State<AccountCard> {
   bool _copied = false;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -214,7 +190,6 @@ class _AccountCardState extends State<AccountCard> {
       ),
     );
   }
-
   String _grouped(String number) {
     final buffer = StringBuffer();
     for (var i = 0; i < number.length; i++) {
@@ -223,7 +198,6 @@ class _AccountCardState extends State<AccountCard> {
     }
     return buffer.toString();
   }
-
   Future<void> _copy() async {
     await Clipboard.setData(ClipboardData(text: widget.account.accountNumber));
     if (!mounted) return;
@@ -241,18 +215,15 @@ class _AccountCardState extends State<AccountCard> {
     );
   }
 }
-
 class _CopyNumberButton extends StatelessWidget {
   const _CopyNumberButton({
     required this.number,
     required this.copied,
     required this.onPressed,
   });
-
   final String number;
   final bool copied;
   final VoidCallback onPressed;
-
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -296,12 +267,9 @@ class _CopyNumberButton extends StatelessWidget {
     );
   }
 }
-
 class _TransactionList extends StatelessWidget {
   const _TransactionList({required this.section});
-
   final Section<WalletAccount> section;
-
   @override
   Widget build(BuildContext context) {
     final data = section.data;
@@ -333,12 +301,9 @@ class _TransactionList extends StatelessWidget {
     );
   }
 }
-
 class _TransactionRow extends StatelessWidget {
   const _TransactionRow({required this.transaction});
-
   final WalletTransaction transaction;
-
   @override
   Widget build(BuildContext context) {
     final credit = transaction.isCredit;
@@ -347,7 +312,6 @@ class _TransactionRow extends StatelessWidget {
         ? const Color(0xFFE0FEDA)
         : const Color(0xFFFDE9E9);
     final icon = credit ? AppIcons.arrowUp : AppIcons.arrowDown;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       child: Row(

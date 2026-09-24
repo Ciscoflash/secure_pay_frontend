@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-
 import 'app_colors.dart';
-
 abstract final class AppTheme {
   static const fontFamily = 'DM Sans';
-
   static ThemeData light() {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,
@@ -12,7 +9,6 @@ abstract final class AppTheme {
       surface: AppColors.background,
       error: AppColors.error,
     );
-
     return ThemeData(
       colorScheme: colorScheme,
       fontFamily: fontFamily,

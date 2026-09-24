@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
-
-/// Split auth layout: form on the left, branded world-map panel on the right.
-///
-/// Proportions follow the 1440px design frame (700px form / 740px panel).
-/// Below [_splitBreakpoint] the panel is hidden and the form fills the screen.
 class AuthLayout extends StatelessWidget {
   const AuthLayout({
     super.key,
@@ -14,14 +8,11 @@ class AuthLayout extends StatelessWidget {
     required this.panelTitle,
     required this.panelBody,
   });
-
   final Widget form;
   final String panelTitle;
   final String panelBody;
-
   static const _splitBreakpoint = 900.0;
   static const _formContentWidth = 535.0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +22,6 @@ class AuthLayout extends StatelessWidget {
           final isSplit = constraints.maxWidth >= _splitBreakpoint;
           final formPane = _FormPane(form: form, isSplit: isSplit);
           if (!isSplit) return formPane;
-
           return Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -47,24 +37,18 @@ class AuthLayout extends StatelessWidget {
     );
   }
 }
-
 class _FormPane extends StatelessWidget {
   const _FormPane({required this.form, required this.isSplit});
-
   final Widget form;
   final bool isSplit;
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        // 100px left inset on the desktop frame; centered with a 24px gutter
-        // when the pane is too narrow for that.
         final leftInset = isSplit && width >= 700
             ? 100.0
             : ((width - AuthLayout._formContentWidth) / 2).clamp(24.0, 100.0);
-
         return SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
@@ -86,13 +70,10 @@ class _FormPane extends StatelessWidget {
     );
   }
 }
-
 class _BrandPanel extends StatelessWidget {
   const _BrandPanel({required this.title, required this.body});
-
   final String title;
   final String body;
-
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
@@ -155,14 +136,10 @@ class _BrandPanel extends StatelessWidget {
     );
   }
 }
-
-/// Heading + subtitle block used at the top of each auth form.
 class AuthHeader extends StatelessWidget {
   const AuthHeader({super.key, required this.title, required this.subtitle});
-
   final String title;
   final Widget subtitle;
-
   @override
   Widget build(BuildContext context) {
     return Column(

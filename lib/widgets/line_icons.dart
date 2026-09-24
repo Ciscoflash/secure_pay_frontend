@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-
 import '../theme/app_colors.dart';
-
-/// Thin-stroke eye / eye-slash glyph matching the design's password toggle.
 class EyeIcon extends StatelessWidget {
   const EyeIcon({super.key, this.crossedOut = true, this.size = 24});
-
   final bool crossedOut;
   final double size;
-
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
@@ -17,12 +12,9 @@ class EyeIcon extends StatelessWidget {
     );
   }
 }
-
 class _EyePainter extends CustomPainter {
   _EyePainter({required this.crossedOut});
-
   final bool crossedOut;
-
   @override
   void paint(Canvas canvas, Size size) {
     final s = size.width / 24;
@@ -32,7 +24,6 @@ class _EyePainter extends CustomPainter {
       ..strokeWidth = 1.5 * s
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-
     final eye = Path()
       ..moveTo(2.5 * s, 12 * s)
       ..cubicTo(5 * s, 6.5 * s, 8.5 * s, 4.75 * s, 12 * s, 4.75 * s)
@@ -42,7 +33,6 @@ class _EyePainter extends CustomPainter {
       ..close();
     canvas.drawPath(eye, paint);
     canvas.drawCircle(Offset(12 * s, 12 * s), 3.5 * s, paint);
-
     if (crossedOut) {
       canvas.drawLine(
         Offset(21.5 * s, 2.5 * s),
@@ -51,24 +41,18 @@ class _EyePainter extends CustomPainter {
       );
     }
   }
-
   @override
   bool shouldRepaint(_EyePainter oldDelegate) =>
       oldDelegate.crossedOut != crossedOut;
 }
-
-/// Small thin chevron used by the country-code picker.
 class ChevronDownIcon extends StatelessWidget {
   const ChevronDownIcon({super.key, this.size = 16});
-
   final double size;
-
   @override
   Widget build(BuildContext context) {
     return CustomPaint(size: Size.square(size), painter: _ChevronPainter());
   }
 }
-
 class _ChevronPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -87,7 +71,6 @@ class _ChevronPainter extends CustomPainter {
       paint,
     );
   }
-
   @override
   bool shouldRepaint(_ChevronPainter oldDelegate) => false;
 }

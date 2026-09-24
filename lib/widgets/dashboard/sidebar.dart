@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import 'app_icon.dart';
-
 enum NavDestination {
   dashboard('Dashboard', AppIcons.dashboard),
   shipments('Shipments', AppIcons.shipments),
@@ -13,14 +11,10 @@ enum NavDestination {
   addresses('My Addresses', AppIcons.addresses),
   invite('Invite & Earn', AppIcons.invite),
   help('Help Center', AppIcons.help);
-
   const NavDestination(this.label, this.icon);
-
   final String label;
   final AppIcons icon;
 }
-
-/// Left navigation: brand slot, destinations, and the profile/logout footer.
 class Sidebar extends StatelessWidget {
   const Sidebar({
     super.key,
@@ -31,19 +25,14 @@ class Sidebar extends StatelessWidget {
     this.lastName = '',
     this.unreadCount = 0,
   });
-
   static const width = 237.0;
   static const headerHeight = 93.0;
-
   final NavDestination selected;
   final ValueChanged<NavDestination> onSelected;
   final VoidCallback onLogout;
   final String firstName;
   final String lastName;
-
-  /// Unread notifications shown as a badge on the Notifications item.
   final int unreadCount;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -55,7 +44,6 @@ class Sidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Brand slot, level with the page header.
           Container(
             height: headerHeight,
             decoration: const BoxDecoration(
@@ -112,7 +100,6 @@ class Sidebar extends StatelessWidget {
     );
   }
 }
-
 class _NavItem extends StatefulWidget {
   const _NavItem({
     required this.label,
@@ -121,22 +108,16 @@ class _NavItem extends StatefulWidget {
     required this.onTap,
     this.badge = 0,
   });
-
   final String label;
   final AppIcons icon;
   final bool selected;
   final VoidCallback onTap;
-
-  /// Small count shown on the trailing edge (e.g. unread notifications).
   final int badge;
-
   @override
   State<_NavItem> createState() => _NavItemState();
 }
-
 class _NavItemState extends State<_NavItem> {
   bool _hovered = false;
-
   @override
   Widget build(BuildContext context) {
     final foreground = widget.selected
@@ -149,7 +130,6 @@ class _NavItemState extends State<_NavItem> {
         : _hovered
         ? const Color(0xFFF5F5F5)
         : Colors.transparent;
-
     return Semantics(
       button: true,
       selected: widget.selected,
@@ -219,13 +199,10 @@ class _NavItemState extends State<_NavItem> {
     );
   }
 }
-
 class _ProfileTile extends StatelessWidget {
   const _ProfileTile({required this.firstName, required this.lastName});
-
   final String firstName;
   final String lastName;
-
   String get _initials {
     final letters = [
       for (final part in [firstName, lastName])
@@ -233,7 +210,6 @@ class _ProfileTile extends StatelessWidget {
     ];
     return letters.isEmpty ? '?' : letters.join();
   }
-
   @override
   Widget build(BuildContext context) {
     final style = AppText.style(
@@ -245,7 +221,6 @@ class _ProfileTile extends StatelessWidget {
       padding: const EdgeInsets.only(left: 15),
       child: Row(
         children: [
-          // No profile photos in the API yet, so show the user's initials.
           ExcludeSemantics(
             child: Container(
               width: 49,

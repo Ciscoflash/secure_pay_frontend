@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
-
-/// Glossy primary button from the auth designs: a soft top-to-bottom
-/// gradient, 1px darker border and a subtle drop shadow.
 class PrimaryButton extends StatefulWidget {
   const PrimaryButton({
     super.key,
@@ -12,21 +8,16 @@ class PrimaryButton extends StatefulWidget {
     required this.onPressed,
     this.isLoading = false,
   });
-
   final String label;
   final VoidCallback? onPressed;
   final bool isLoading;
-
   @override
   State<PrimaryButton> createState() => _PrimaryButtonState();
 }
-
 class _PrimaryButtonState extends State<PrimaryButton> {
   bool _hovered = false;
   bool _pressed = false;
-
   bool get _enabled => widget.onPressed != null && !widget.isLoading;
-
   @override
   Widget build(BuildContext context) {
     final (top, bottom) = switch ((_pressed, _hovered)) {
@@ -34,7 +25,6 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       (false, true) => (const Color(0xFF6A72AF), const Color(0xFF545D9D)),
       _ => (AppColors.primaryLight, AppColors.primary),
     };
-
     return Semantics(
       button: true,
       enabled: _enabled,

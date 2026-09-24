@@ -1,10 +1,4 @@
 import 'package:flutter/widgets.dart';
-
-/// DM Sans text styles.
-///
-/// The bundled font is variable, so weight and optical size are set through
-/// [FontVariation]s. Optical size follows the font size ("auto" in Figma),
-/// which gives large headings the tighter spacing seen in the designs.
 abstract final class AppText {
   static TextStyle style(
     double size, {

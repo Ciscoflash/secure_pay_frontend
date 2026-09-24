@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../controllers/notifications_controller.dart';
 import '../../models/notification.dart';
 import '../../theme/app_colors.dart';
@@ -10,26 +9,18 @@ import '../../controllers/dashboard_controller.dart' show Section;
 import 'app_icon.dart';
 import 'overview_cards.dart' show OutlinedPill;
 import 'section_states.dart';
-
-/// The sidebar "Notifications" destination.
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
-
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();
 }
-
 class _NotificationsPageState extends State<NotificationsPage> {
   NotificationsController get _ctrl => Get.find<NotificationsController>();
-
   @override
   void initState() {
     super.initState();
-    // Refresh whenever the page is opened so the badge stays current.
-    // Post-frame, because load() publishes state and initState runs mid-build.
     WidgetsBinding.instance.addPostFrameCallback((_) => _ctrl.load());
   }
-
   @override
   Widget build(BuildContext context) {
     final gutter = MediaQuery.sizeOf(context).width < 600 ? 16.0 : 28.0;
@@ -70,12 +61,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
     });
   }
 }
-
 class _NotificationBody extends StatelessWidget {
   const _NotificationBody({required this.section});
-
   final Section<NotificationPage> section;
-
   @override
   Widget build(BuildContext context) {
     final data = section.data;
@@ -114,12 +102,9 @@ class _NotificationBody extends StatelessWidget {
     );
   }
 }
-
 class _NotificationRow extends StatelessWidget {
   const _NotificationRow({required this.notification});
-
   final AppNotification notification;
-
   @override
   Widget build(BuildContext context) {
     final (background, foreground, icon) = _typeTone(notification.type);
@@ -198,7 +183,6 @@ class _NotificationRow extends StatelessWidget {
       ),
     );
   }
-
   (Color, Color, AppIcons) _typeTone(String type) => switch (type) {
     'credit' => (const Color(0xFFE0FEDA), AppColors.success, AppIcons.arrowUp),
     'debit' => (const Color(0xFFFDE9E9), AppColors.error, AppIcons.arrowDown),

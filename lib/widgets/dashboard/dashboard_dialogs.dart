@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import '../../models/shipment.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../utils/formatters.dart';
-
 const _maxFundNaira = 10000000;
-
 Widget _dialogTitle(String text) => Text(
   text,
   style: AppText.style(20, weight: 600, color: AppColors.textPrimary),
 );
-
 ButtonStyle _primaryButtonStyle() => FilledButton.styleFrom(
   backgroundColor: AppColors.navyButton,
   foregroundColor: Colors.white,
   minimumSize: const Size(110, 44),
   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
 );
-
 ButtonStyle _secondaryButtonStyle() => TextButton.styleFrom(
   foregroundColor: AppColors.textSecondary,
   minimumSize: const Size(90, 44),
 );
-
-/// Asks for an amount and calls [onSubmit] (which returns an error message or
-/// null). Resolves to the amount added in kobo, or null if cancelled.
 Future<int?> showFundWalletDialog(
   BuildContext context, {
   required Future<String?> Function(double amountNaira) onSubmit,
@@ -36,30 +28,23 @@ Future<int?> showFundWalletDialog(
     builder: (_) => _FundWalletDialog(onSubmit: onSubmit),
   );
 }
-
 class _FundWalletDialog extends StatefulWidget {
   const _FundWalletDialog({required this.onSubmit});
-
   final Future<String?> Function(double amountNaira) onSubmit;
-
   @override
   State<_FundWalletDialog> createState() => _FundWalletDialogState();
 }
-
 class _FundWalletDialogState extends State<_FundWalletDialog> {
   final _amount = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String? _serverError;
   bool _submitting = false;
-
   static const _quickAmounts = [5000, 10000, 50000, 100000];
-
   @override
   void dispose() {
     _amount.dispose();
     super.dispose();
   }
-
   String? _validate(String? value) {
     final amount = double.tryParse((value ?? '').replaceAll(',', ''));
     if (amount == null || amount <= 0) {
@@ -70,7 +55,6 @@ class _FundWalletDialogState extends State<_FundWalletDialog> {
     }
     return null;
   }
-
   Future<void> _submit() async {
     setState(() => _serverError = null);
     if (!_formKey.currentState!.validate()) return;
@@ -87,7 +71,6 @@ class _FundWalletDialogState extends State<_FundWalletDialog> {
     }
     Navigator.of(context).pop((amount * 100).round());
   }
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -176,7 +159,6 @@ class _FundWalletDialogState extends State<_FundWalletDialog> {
     );
   }
 }
-
 Future<bool?> showPayConfirmDialog(BuildContext context, Shipment shipment) {
   return showDialog<bool>(
     context: context,
@@ -208,8 +190,6 @@ Future<bool?> showPayConfirmDialog(BuildContext context, Shipment shipment) {
     ),
   );
 }
-
-/// Shows the shipment immediately and refreshes it from the server.
 Future<void> showShipmentDetailsDialog(
   BuildContext context, {
   required Shipment shipment,

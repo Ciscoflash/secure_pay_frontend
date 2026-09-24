@@ -3,28 +3,19 @@ enum ShipmentStatus {
   inTransit('in_transit', 'In-Transit'),
   delayed('delayed', 'Delayed'),
   delivered('delivered', 'Delivered');
-
   const ShipmentStatus(this.apiValue, this.label);
-
   final String apiValue;
   final String label;
-
   static ShipmentStatus fromApi(Object? value) => values.firstWhere(
     (s) => s.apiValue == value,
     orElse: () => ShipmentStatus.pending,
   );
 }
-
 enum ShipmentDirection { export, import, local }
-
 class Place {
   const Place(this.name, {this.countryCode = 'NG'});
-
   final String name;
-
-  /// ISO 3166-1 alpha-2 code, used for the flag.
   final String countryCode;
-
   factory Place.fromJson(Object? json) {
     final map = json is Map<String, dynamic> ? json : const <String, dynamic>{};
     return Place(
@@ -33,7 +24,6 @@ class Place {
     );
   }
 }
-
 class Shipment {
   const Shipment({
     required this.id,
@@ -50,15 +40,12 @@ class Shipment {
     this.paidAt,
     this.createdAt,
   });
-
   final String id;
   final String trackingId;
   final String sender;
   final String receiver;
   final Place pickUp;
   final Place deliveryTo;
-
-  /// Kobo.
   final int amount;
   final ShipmentStatus status;
   final ShipmentDirection direction;
@@ -66,7 +53,6 @@ class Shipment {
   final bool isPaid;
   final DateTime? paidAt;
   final DateTime? createdAt;
-
   factory Shipment.fromJson(Map<String, dynamic> json) => Shipment(
     id: json['id']?.toString() ?? '',
     trackingId: json['trackingId']?.toString() ?? '',

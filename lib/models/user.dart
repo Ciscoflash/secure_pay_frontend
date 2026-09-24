@@ -1,4 +1,4 @@
-/// Authenticated user returned by the auth endpoints.
+
 class AuthUser {
   const AuthUser({
     required this.id,
@@ -12,7 +12,6 @@ class AuthUser {
     this.walletBalance = 0,
     this.emailVerified = false,
   });
-
   final String id;
   final String name;
   final String firstName;
@@ -21,19 +20,14 @@ class AuthUser {
   final String? phone;
   final String? countryCode;
   final String role;
-
-  /// Kobo.
   final int walletBalance;
-
   final bool emailVerified;
-
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.isEmpty || parts.first.isEmpty) return '?';
     if (parts.length == 1) return parts.first[0].toUpperCase();
     return (parts.first[0] + parts.last[0]).toUpperCase();
   }
-
   AuthUser copyWith({bool? emailVerified}) => AuthUser(
     id: id,
     name: name,
@@ -46,7 +40,6 @@ class AuthUser {
     walletBalance: walletBalance,
     emailVerified: emailVerified ?? this.emailVerified,
   );
-
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
     id: json['id']?.toString() ?? '',
     name: json['name']?.toString() ?? '',
@@ -59,7 +52,6 @@ class AuthUser {
     walletBalance: (json['walletBalance'] as num?)?.toInt() ?? 0,
     emailVerified: json['emailVerified'] == true,
   );
-
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,

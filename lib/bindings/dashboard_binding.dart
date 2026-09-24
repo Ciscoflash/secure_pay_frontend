@@ -1,17 +1,12 @@
 import 'package:get/get.dart';
-
 import '../controllers/auth_controller.dart';
 import '../controllers/dashboard_controller.dart';
 import '../controllers/notifications_controller.dart';
 import '../controllers/wallet_controller.dart';
 import '../services/dashboard_service.dart';
-
 class DashboardBinding extends Bindings {
   DashboardBinding({this.service});
-
-  /// Overridable for tests.
   final DashboardService? service;
-
   @override
   void dependencies() {
     Get.lazyPut(

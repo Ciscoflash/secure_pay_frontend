@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import 'sidebar.dart';
-
-/// White bar above the page content with a title and a short description.
 class PageHeader extends StatelessWidget {
   const PageHeader({
     super.key,
@@ -12,13 +9,9 @@ class PageHeader extends StatelessWidget {
     required this.subtitle,
     this.leading,
   });
-
   final String title;
   final String subtitle;
-
-  /// Shown before the title when the sidebar is collapsed (menu button).
   final Widget? leading;
-
   @override
   Widget build(BuildContext context) {
     return Container(

@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
-
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
 import '../utils/password_policy.dart';
-
-/// Live strength bar and requirement checklist for a new password.
-/// Hidden until the user starts typing.
 class PasswordStrength extends StatelessWidget {
   const PasswordStrength({super.key, required this.controller});
-
   final TextEditingController controller;
-
   static const _levels = [
     ('', Colors.transparent),
     ('Weak', AppColors.error),
@@ -18,7 +12,6 @@ class PasswordStrength extends StatelessWidget {
     ('Good', Color(0xFF65A30D)),
     ('Strong', AppColors.success),
   ];
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<TextEditingValue>(
@@ -26,11 +19,9 @@ class PasswordStrength extends StatelessWidget {
       builder: (context, value, _) {
         final password = value.text;
         if (password.isEmpty) return const SizedBox.shrink();
-
         final score = PasswordPolicy.strength(password);
         final (label, color) = _levels[score];
         final common = PasswordPolicy.isCommon(password);
-
         return Padding(
           padding: const EdgeInsets.only(top: 10),
           child: Column(
@@ -86,13 +77,10 @@ class PasswordStrength extends StatelessWidget {
     );
   }
 }
-
 class _Requirement extends StatelessWidget {
   const _Requirement({required this.label, required this.met});
-
   final String label;
   final bool met;
-
   @override
   Widget build(BuildContext context) {
     final color = met ? AppColors.success : AppColors.textMuted;

@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
-
 import '../../models/dashboard.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import 'app_icon.dart';
-
 class BalanceCard extends StatelessWidget {
   const BalanceCard({
     super.key,
     required this.balance,
     required this.onFundWallet,
   });
-
   final String balance;
   final VoidCallback onFundWallet;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -57,19 +53,15 @@ class BalanceCard extends StatelessWidget {
     );
   }
 }
-
 enum StatTone {
   shipment(Color(0xFFF1E4C7), Color(0xFFBF8B32), AppIcons.truck),
   exports(Color(0xFFE0FEDA), Color(0xFF5AC03A), AppIcons.arrowUp),
   imports(Color(0xFFDEFCFE), Color(0xFF479DA5), AppIcons.arrowDown);
-
   const StatTone(this.background, this.foreground, this.icon);
-
   final Color background;
   final Color foreground;
   final AppIcons icon;
 }
-
 class StatCard extends StatelessWidget {
   const StatCard({
     super.key,
@@ -78,20 +70,15 @@ class StatCard extends StatelessWidget {
     required this.stat,
     required this.periodNoun,
   });
-
   final StatTone tone;
   final String label;
   final StatValue stat;
-
-  /// "week", "month" or "year" — completes "Vs last …".
   final String periodNoun;
-
   @override
   Widget build(BuildContext context) {
     final change = stat.changePct;
     final down = change != null && change < 0;
     final changeColor = down ? AppColors.error : AppColors.success;
-
     return Container(
       height: 164,
       padding: const EdgeInsets.fromLTRB(16, 34, 12, 0),
@@ -175,8 +162,6 @@ class StatCard extends StatelessWidget {
     );
   }
 }
-
-/// Outlined white button with muted text ("This Month", "See All").
 class OutlinedPill extends StatelessWidget {
   const OutlinedPill({
     super.key,
@@ -184,11 +169,9 @@ class OutlinedPill extends StatelessWidget {
     required this.onTap,
     this.trailing,
   });
-
   final String label;
   final VoidCallback onTap;
   final Widget? trailing;
-
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -215,8 +198,6 @@ class OutlinedPill extends StatelessWidget {
     );
   }
 }
-
-/// Compact button used inside cards ("Fund Wallet", "View More", "Pay Now").
 class _SmallButton extends StatelessWidget {
   const _SmallButton({
     required this.label,
@@ -224,12 +205,10 @@ class _SmallButton extends StatelessWidget {
     required this.background,
     required this.foreground,
   });
-
   final String label;
   final VoidCallback onPressed;
   final Color background;
   final Color foreground;
-
   @override
   Widget build(BuildContext context) {
     return Material(

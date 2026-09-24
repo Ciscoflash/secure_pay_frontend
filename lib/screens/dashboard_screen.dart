@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../controllers/auth_controller.dart';
 import '../controllers/dashboard_controller.dart';
 import '../controllers/notifications_controller.dart';
@@ -21,40 +20,31 @@ import '../widgets/dashboard/shipment_card.dart';
 import '../widgets/dashboard/sidebar.dart';
 import '../widgets/dashboard/wallet_page.dart';
 import 'routes.dart';
-
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
-
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
-
 class _DashboardScreenState extends State<DashboardScreen> {
   static const _sidebarBreakpoint = 1024.0;
-
   final _auth = Get.find<AuthController>();
   final _dashboard = Get.find<DashboardController>();
   final _notifications = Get.find<NotificationsController>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   var _destination = NavDestination.dashboard;
-
   @override
   void initState() {
     super.initState();
-    // Never render the dashboard for an unverified account, even if someone
-    // lands here via a deep link or stale route.
     if (!_auth.isVerified) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Get.offAllNamed(Routes.verifyEmail);
       });
     }
   }
-
   Future<void> _logout() async {
     await _auth.logout();
     Get.offAllNamed(Routes.signIn);
   }
-
   void _toast(String title, String message, {bool error = false}) {
     Get.snackbar(
       title,
@@ -68,7 +58,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       borderWidth: 1,
     );
   }
-
   Future<void> _fundWallet() async {
     final funded = await showFundWalletDialog(
       context,
@@ -81,7 +70,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
   }
-
   Future<void> _pay(Shipment shipment) async {
     final confirmed = await showPayConfirmDialog(context, shipment);
     if (confirmed != true) return;
@@ -95,13 +83,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _toast('Payment failed', error, error: true);
     }
   }
-
   void _viewMore(Shipment shipment) => showShipmentDetailsDialog(
     context,
     shipment: shipment,
     load: () => _dashboard.shipmentDetails(shipment.id),
   );
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -115,14 +101,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             unreadCount: _notifications.unread,
             onSelected: (d) {
               setState(() => _destination = d);
-              // Keep the overview balance in sync after funding elsewhere.
               if (d == NavDestination.dashboard) _dashboard.loadOverview();
               if (!wide) Navigator.of(context).pop();
             },
             onLogout: _logout,
           ),
         );
-
         final (title, subtitle) = _destinationHeader(_destination);
         final page = Column(
           children: [
@@ -147,7 +131,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         );
-
         return Scaffold(
           key: _scaffoldKey,
           backgroundColor: AppColors.background,
@@ -164,7 +147,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
     );
   }
-
   Widget _content(double width) {
     switch (_destination) {
       case NavDestination.notifications:
@@ -177,7 +159,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return _PlaceholderDestination(destination: _destination);
     }
   }
-
   Widget _dashboardContent(double width) {
     final gutter = width < 600 ? 16.0 : 28.0;
     return RefreshIndicator(
@@ -224,7 +205,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
   Widget _periodPicker() {
     return Obx(
       () => PopupMenuButton<Period>(
@@ -257,7 +237,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
   Widget _overview(double width) {
     final section = _dashboard.overview.value;
     final data = section.data;
@@ -270,7 +249,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               height: 164,
             );
     }
-
     final noun = _dashboard.period.value.noun;
     final balance = BalanceCard(
       balance: formatNaira(data.balance),
@@ -296,7 +274,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         periodNoun: noun,
       ),
     ];
-
     final Widget cards;
     if (width < 600) {
       cards = Column(
@@ -341,7 +318,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: cards,
     );
   }
-
   Widget _growthChart() {
     final section = _dashboard.growth.value;
     final data = section.data;
@@ -355,7 +331,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onRetry: _dashboard.loadGrowth,
     );
   }
-
   List<Widget> _shipmentList() {
     return [
       Obx(() {
@@ -409,7 +384,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }),
     ];
   }
-
   (String, String) _destinationHeader(NavDestination destination) =>
       switch (destination) {
         NavDestination.dashboard => (
@@ -447,14 +421,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
       };
 }
-
-/// Friendly "under construction" state for sidebar destinations without a
-/// page yet, so the menu is never a dead end.
 class _PlaceholderDestination extends StatelessWidget {
   const _PlaceholderDestination({required this.destination});
-
   final NavDestination destination;
-
   @override
   Widget build(BuildContext context) {
     final gutter = MediaQuery.sizeOf(context).width < 600 ? 16.0 : 28.0;
@@ -500,13 +469,10 @@ class _PlaceholderDestination extends StatelessWidget {
     );
   }
 }
-
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.title, required this.action});
-
   final String title;
   final Widget action;
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
