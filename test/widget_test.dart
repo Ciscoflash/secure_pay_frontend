@@ -56,6 +56,21 @@ Shipment _shipment(String id, {required bool paid}) => Shipment(
   direction: ShipmentDirection.local,
   processingHours: 10,
   isPaid: paid,
+  paidAt: paid ? DateTime.now() : null,
+  createdAt: DateTime.now(),
+  events: [
+    TrackingEvent(
+      status: ShipmentStatus.pending,
+      note: 'Shipment created',
+      at: DateTime.now(),
+    ),
+    if (paid)
+      TrackingEvent(
+        status: ShipmentStatus.inTransit,
+        note: 'Package in transit',
+        at: DateTime.now(),
+      ),
+  ],
 );
 class TestData {
   int balance = 300000028;
@@ -86,11 +101,88 @@ class FakeShipmentService extends ShipmentService {
     String token, {
     int page = 1,
     int limit = 3,
-  }) async => ShipmentPage(items: List.of(data.items), total: data.items.length);
+    ShipmentStatus? status,
+    ShipmentDirection? direction,
+    String? search,
+  }) async {
+    var items = List.of(data.items);
+    if (status != null) {
+      items = items.where((s) => s.status == status).toList();
+    }
+    if (direction != null) {
+      items = items.where((s) => s.direction == direction).toList();
+    }
+    final query = search?.trim().toLowerCase() ?? '';
+    if (query.isNotEmpty) {
+      items = items
+          .where(
+            (s) =>
+                s.trackingId.toLowerCase().contains(query) ||
+                s.sender.toLowerCase().contains(query) ||
+                s.receiver.toLowerCase().contains(query),
+          )
+          .toList();
+    }
+    return ShipmentPage(
+      items: items,
+      total: items.length,
+      page: page,
+      totalPages: 1,
+    );
+  }
+  @override
+  Future<Shipment> shipment(String token, String id) async =>
+      data.items.firstWhere((s) => s.id == id);
+  @override
+  Future<EstimateResult> estimate(
+    String token, {
+    required Place pickUp,
+    required Place deliveryTo,
+  }) async {
+    final local = pickUp.countryCode == 'NG' && deliveryTo.countryCode == 'NG';
+    return EstimateResult(
+      amount: local ? 850000 : 8000000,
+      direction: local ? ShipmentDirection.local : ShipmentDirection.export,
+    );
+  }
+  @override
+  Future<CreateShipmentResult> createShipment(
+    String token, {
+    required String sender,
+    required String receiver,
+    required Place pickUp,
+    required Place deliveryTo,
+  }) async {
+    final created = Shipment(
+      id: 'new-1',
+      trackingId: 'MAF-100-234-900',
+      sender: sender,
+      receiver: receiver,
+      pickUp: pickUp,
+      deliveryTo: deliveryTo,
+      amount: 850000,
+      status: ShipmentStatus.pending,
+      direction: ShipmentDirection.local,
+      processingHours: 12,
+      isPaid: false,
+      createdAt: DateTime.now(),
+      events: [
+        TrackingEvent(
+          status: ShipmentStatus.pending,
+          note: 'Shipment created',
+          at: DateTime.now(),
+        ),
+      ],
+    );
+    data.items.add(created);
+    return CreateShipmentResult(shipment: created, balance: data.balance);
+  }
   @override
   Future<PaymentResult> payShipment(String token, String id) async {
     final paid = _shipment(id, paid: true);
     data.balance -= paid.amount;
+    final index = data.items.indexWhere((s) => s.id == id);
+    if (index != -1) data.items[index] = paid;
     return PaymentResult(shipment: paid, balance: data.balance);
   }
 }
@@ -360,5 +452,81 @@ void main() {
     data.unread = 3;
     await pumpApp(tester, stored: {'auth_token': 'tok'});
     expect(find.text('3'), findsOneWidget);
+  });
+  testWidgets('shipments page lists and filters shipments', (tester) async {
+    await pumpApp(tester, stored: {'auth_token': 'tok'});
+    await tester.tap(find.text('Shipments'));
+    await tester.pumpAndSettle();
+    expect(find.text('New shipment'), findsOneWidget);
+    expect(find.textContaining('MAF-100-234-291'), findsOneWidget);
+    expect(find.textContaining('MAF-100-234-292'), findsOneWidget);
+    await tester.tap(find.text('Delayed').first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('MAF-100-234-291'), findsNothing);
+    expect(find.textContaining('MAF-100-234-292'), findsOneWidget);
+    await tester.tap(find.text('All'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('MAF-100-234-291'), findsOneWidget);
+  });
+  testWidgets('search narrows the shipments list', (tester) async {
+    await pumpApp(tester, stored: {'auth_token': 'tok'});
+    await tester.tap(find.text('Shipments'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'MAF-100-234-291');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('MAF-100-234-291'), findsNWidgets(2));
+    expect(find.textContaining('MAF-100-234-292'), findsNothing);
+  });
+  testWidgets('creating a shipment quotes then adds it to the list', (
+    tester,
+  ) async {
+    await pumpApp(tester, stored: {'auth_token': 'tok'});
+    await tester.tap(find.text('Shipments'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('New shipment'));
+    await tester.pumpAndSettle();
+    expect(find.text('Create a shipment'), findsOneWidget);
+    final dropdowns = find.byType(DropdownButtonFormField<String>);
+    await tester.tap(dropdowns.at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ghana').last);
+    await tester.pumpAndSettle();
+    final fields = find.byType(TextFormField);
+    await tester.enterText(fields.at(0), 'Ada Obi');
+    await tester.enterText(fields.at(1), 'Bunmi');
+    await tester.enterText(fields.at(2), 'Lagos, Nigeria');
+    await tester.enterText(fields.last, 'Accra, Ghana');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('N80,000'), findsOneWidget);
+    await tester.tap(find.text('Create shipment'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('MAF-100-234-900'), findsWidgets);
+    expect(find.text('Shipment created'), findsOneWidget);
+    await settleSnackbars(tester);
+  });
+  testWidgets('view more opens the tracking page and pays from it', (
+    tester,
+  ) async {
+    await pumpApp(tester, stored: {'auth_token': 'tok'});
+    await tester.tap(find.text('Shipments'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('View More').last);
+    await tester.tap(find.text('View More').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Shipment details'), findsOneWidget);
+    expect(find.text('Tracking history'), findsOneWidget);
+    expect(find.text('Journey'), findsOneWidget);
+    expect(find.text('Shipment created'), findsOneWidget);
+    await tester.ensureVisible(find.text('Pay now'));
+    await tester.tap(find.text('Pay now'));
+    await tester.pumpAndSettle();
+    final dialog = find.byType(AlertDialog);
+    await tester.tap(find.descendant(of: dialog, matching: find.text('Pay now')));
+    await tester.pumpAndSettle();
+    expect(find.text('Payment successful'), findsOneWidget);
+    expect(find.textContaining('Paid on'), findsOneWidget);
+    await settleSnackbars(tester);
   });
 }

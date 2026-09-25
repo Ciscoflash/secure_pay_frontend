@@ -10,6 +10,7 @@ import '../widgets/dashboard/notifications_page.dart';
 import '../widgets/dashboard/page_header.dart';
 import '../widgets/dashboard/placeholder_destination.dart';
 import '../widgets/dashboard/sidebar.dart';
+import '../widgets/dashboard/shipments_page.dart';
 import '../widgets/dashboard/wallet_page.dart';
 import 'routes.dart';
 class DashboardScreen extends StatefulWidget {
@@ -102,6 +103,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return const NotificationsPage();
       case NavDestination.wallet:
         return const WalletPage();
+      case NavDestination.shipments:
+        return const ShipmentsPage();
       case NavDestination.dashboard:
         return DashboardHomePage(width: width);
       default:

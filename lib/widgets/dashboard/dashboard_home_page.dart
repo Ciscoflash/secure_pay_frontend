@@ -15,6 +15,7 @@ import 'promo_banner.dart';
 import 'section_header.dart';
 import 'section_states.dart';
 import 'shipment_card.dart';
+import 'shipment_detail_page.dart';
 class DashboardHomePage extends StatelessWidget {
   const DashboardHomePage({super.key, required this.width});
   final double width;
@@ -270,11 +271,10 @@ class DashboardHomePage extends StatelessWidget {
     }
   }
   void _viewMore(BuildContext context, Shipment shipment) {
-    showShipmentDetailsDialog(
-      context,
-      shipment: shipment,
-      load: () =>
-          Get.find<DashboardController>().shipmentDetails(shipment.id),
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ShipmentDetailPage(shipment: shipment),
+      ),
     );
   }
 }

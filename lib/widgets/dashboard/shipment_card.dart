@@ -154,7 +154,7 @@ class _ShipmentCardState extends State<ShipmentCard> {
               ),
               (
                 null,
-                _Field(label: 'Status', gap: 6.5, child: _StatusPill(s.status)),
+                _Field(label: 'Status', gap: 6.5, child: StatusPill(s.status)),
               ),
             ],
           ),
@@ -262,17 +262,17 @@ class _Place extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (place.countryCode == 'NG')
-          const _NigeriaFlag()
+          const NigeriaFlag()
         else
-          _CountryBadge(place.countryCode),
+          CountryBadge(place.countryCode),
         const SizedBox(width: 8),
         Flexible(child: _Value(place.name)),
       ],
     );
   }
 }
-class _NigeriaFlag extends StatelessWidget {
-  const _NigeriaFlag();
+class NigeriaFlag extends StatelessWidget {
+  const NigeriaFlag({super.key});
   @override
   Widget build(BuildContext context) {
     const green = Color(0xFF449852);
@@ -296,8 +296,8 @@ class _NigeriaFlag extends StatelessWidget {
     );
   }
 }
-class _CountryBadge extends StatelessWidget {
-  const _CountryBadge(this.code);
+class CountryBadge extends StatelessWidget {
+  const CountryBadge(this.code, {super.key});
   final String code;
   @override
   Widget build(BuildContext context) {
@@ -316,8 +316,8 @@ class _CountryBadge extends StatelessWidget {
     );
   }
 }
-class _StatusPill extends StatelessWidget {
-  const _StatusPill(this.status);
+class StatusPill extends StatelessWidget {
+  const StatusPill(this.status, {super.key});
   final ShipmentStatus status;
   @override
   Widget build(BuildContext context) {

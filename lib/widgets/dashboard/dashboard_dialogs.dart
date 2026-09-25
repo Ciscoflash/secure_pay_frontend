@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/shipment.dart';
+import '../../services/api_client.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import '../../utils/formatters.dart';
+import 'app_icon.dart';
 const _maxFundNaira = 10000000;
 Widget _dialogTitle(String text) => Text(
   text,
@@ -159,6 +162,360 @@ class _FundWalletDialogState extends State<_FundWalletDialog> {
     );
   }
 }
+Future<CreateShipmentResult?> showCreateShipmentDialog(
+  BuildContext context, {
+  required Future<EstimateResult> Function({
+    required Place pickUp,
+    required Place deliveryTo,
+  })
+  estimate,
+  required Future<CreateShipmentResult> Function({
+    required String sender,
+    required String receiver,
+    required Place pickUp,
+    required Place deliveryTo,
+  })
+  submit,
+  int? walletBalance,
+}) {
+  return showDialog<CreateShipmentResult>(
+    context: context,
+    builder: (_) => _CreateShipmentDialog(
+      estimate: estimate,
+      submit: submit,
+      walletBalance: walletBalance,
+    ),
+  );
+}
+const _shipmentCountries = [
+  (code: 'NG', name: 'Nigeria'),
+  (code: 'GH', name: 'Ghana'),
+  (code: 'GB', name: 'United Kingdom'),
+  (code: 'US', name: 'United States'),
+  (code: 'CA', name: 'Canada'),
+  (code: 'AE', name: 'United Arab Emirates'),
+];
+class _CreateShipmentDialog extends StatefulWidget {
+  const _CreateShipmentDialog({
+    required this.estimate,
+    required this.submit,
+    this.walletBalance,
+  });
+  final Future<EstimateResult> Function({
+    required Place pickUp,
+    required Place deliveryTo,
+  })
+  estimate;
+  final Future<CreateShipmentResult> Function({
+    required String sender,
+    required String receiver,
+    required Place pickUp,
+    required Place deliveryTo,
+  })
+  submit;
+  final int? walletBalance;
+  @override
+  State<_CreateShipmentDialog> createState() => _CreateShipmentDialogState();
+}
+class _CreateShipmentDialogState extends State<_CreateShipmentDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _sender = TextEditingController();
+  final _receiver = TextEditingController();
+  final _pickUpPlace = TextEditingController();
+  final _deliveryPlace = TextEditingController();
+  var _pickUpCountry = 'NG';
+  var _deliveryCountry = 'NG';
+  Timer? _debounce;
+  EstimateResult? _quote;
+  bool _quoting = false;
+  String? _serverError;
+  bool _submitting = false;
+  @override
+  void initState() {
+    super.initState();
+    _scheduleQuote();
+  }
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _sender.dispose();
+    _receiver.dispose();
+    _pickUpPlace.dispose();
+    _deliveryPlace.dispose();
+    super.dispose();
+  }
+  String? _required(String? value) =>
+      value == null || value.trim().isEmpty ? 'Required' : null;
+  void _onChanged(String _) => _scheduleQuote();
+  void _scheduleQuote() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), _fetchQuote);
+  }
+  Future<void> _fetchQuote() async {
+    final pickUp = Place(
+      _pickUpPlace.text.trim().isEmpty ? 'Lagos, Nigeria' : _pickUpPlace.text.trim(),
+      countryCode: _pickUpCountry,
+    );
+    final deliveryTo = Place(
+      _deliveryPlace.text.trim().isEmpty
+          ? 'Lagos, Nigeria'
+          : _deliveryPlace.text.trim(),
+      countryCode: _deliveryCountry,
+    );
+    setState(() => _quoting = true);
+    try {
+      final quote = await widget.estimate(
+        pickUp: pickUp,
+        deliveryTo: deliveryTo,
+      );
+      if (!mounted) return;
+      setState(() => _quote = quote);
+    } on ApiException {
+      if (mounted) setState(() => _quote = null);
+    } finally {
+      if (mounted) setState(() => _quoting = false);
+    }
+  }
+  Future<void> _submit() async {
+    setState(() => _serverError = null);
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _submitting = true);
+    try {
+      final result = await widget.submit(
+        sender: _sender.text.trim(),
+        receiver: _receiver.text.trim(),
+        pickUp: Place(_pickUpPlace.text.trim(), countryCode: _pickUpCountry),
+        deliveryTo: Place(
+          _deliveryPlace.text.trim(),
+          countryCode: _deliveryCountry,
+        ),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(result);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _serverError = error.message;
+      });
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    final quote = _quote;
+    final balance = widget.walletBalance;
+    return AlertDialog(
+      backgroundColor: AppColors.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      title: _dialogTitle('Create a shipment'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 460, maxWidth: 560),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Sender',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _sender,
+                validator: _required,
+                style: AppText.style(16, color: AppColors.textPrimary),
+                decoration: _fieldDecoration('Who is sending the package?'),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'Receiver',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 18),
+              _placeRow(
+                label: 'Pick up from',
+                country: _pickUpCountry,
+                controller: _pickUpPlace,
+                onCountry: (code) {
+                  setState(() => _pickUpCountry = code);
+                  _scheduleQuote();
+                },
+              ),
+              const SizedBox(height: 18),
+              _placeRow(
+                label: 'Deliver to',
+                country: _deliveryCountry,
+                controller: _deliveryPlace,
+                onCountry: (code) {
+                  setState(() => _deliveryCountry = code);
+                  _scheduleQuote();
+                },
+              ),
+              const SizedBox(height: 18),
+              _quotePanel(context, quote),
+              if (_serverError != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _serverError!,
+                  style: AppText.style(13, color: AppColors.error),
+                ),
+              ],
+              if (quote != null &&
+                  balance != null &&
+                  quote.amount > balance) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Your wallet balance is below this amount, so the shipment '
+                  'will be created unpaid. Pay from your shipment list when '
+                  'ready.',
+                  style: AppText.style(12, color: AppColors.textMuted),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          style: _secondaryButtonStyle(),
+          onPressed: _submitting ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          style: _primaryButtonStyle(),
+          onPressed: _submitting ? null : _submit,
+          child: _submitting
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Create shipment'),
+        ),
+      ],
+    );
+  }
+  Widget _placeRow({
+    required String label,
+    required String country,
+    required TextEditingController controller,
+    required ValueChanged<String> onCountry,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppText.style(14, color: AppColors.textPrimary)),
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 175,
+              child: DropdownButtonFormField<String>(
+                initialValue: country,
+                isExpanded: true,
+                decoration: _fieldDecoration(null),
+                style: AppText.style(16, color: AppColors.textPrimary),
+                icon: const AppIcon(
+                  AppIcons.chevronDown,
+                  size: 18,
+                  color: AppColors.textMuted,
+                ),
+                items: [
+                  for (final (:code, :name) in _shipmentCountries)
+                    DropdownMenuItem(
+                      value: code,
+                      child: Text(
+                        name,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppText.style(14, color: AppColors.textPrimary),
+                      ),
+                    ),
+                ],
+                onChanged: (code) => onCountry(code ?? 'NG'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextFormField(
+                controller: controller,
+                enabled: !_submitting,
+                validator: _required,
+                onChanged: _onChanged,
+                style: AppText.style(16, color: AppColors.textPrimary),
+                decoration: _fieldDecoration('City or area'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+  Widget _quotePanel(BuildContext context, EstimateResult? quote) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F4FF),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFDCE4FB)),
+      ),
+      child: Row(
+        children: [
+          Flexible(
+            child: Text(
+              'Estimated delivery charge',
+              style: AppText.style(14, color: AppColors.textPrimary),
+            ),
+          ),
+          const SizedBox(width: 10),
+          if (_quoting)
+            const SizedBox.square(
+              dimension: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.primary,
+              ),
+            )
+          else if (quote != null)
+            Flexible(
+              child: Text(
+                '${quote.direction.label} • '
+                '${formatNaira(quote.amount, trimWholeKobo: true)}',
+                overflow: TextOverflow.ellipsis,
+                style: AppText.style(
+                  14,
+                  weight: 600,
+                  color: AppColors.navyButton,
+                ),
+              ),
+            )
+          else
+            Text(
+              'Select destinations',
+              style: AppText.style(13, color: AppColors.textMuted),
+            ),
+        ],
+      ),
+    );
+  }
+  InputDecoration _fieldDecoration(String? hint) => InputDecoration(
+    hintText: hint,
+    hintStyle: AppText.style(14, color: AppColors.textMuted),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+  );
+}
 Future<bool?> showPayConfirmDialog(BuildContext context, Shipment shipment) {
   return showDialog<bool>(
     context: context,
@@ -185,110 +542,6 @@ Future<bool?> showPayConfirmDialog(BuildContext context, Shipment shipment) {
           style: _primaryButtonStyle(),
           onPressed: () => Navigator.of(context).pop(true),
           child: const Text('Pay now'),
-        ),
-      ],
-    ),
-  );
-}
-Future<void> showShipmentDetailsDialog(
-  BuildContext context, {
-  required Shipment shipment,
-  required Future<Shipment> Function() load,
-}) {
-  return showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: AppColors.surface,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      title: _dialogTitle('Shipment details'),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 320, maxWidth: 440),
-        child: FutureBuilder<Shipment>(
-          future: load(),
-          initialData: shipment,
-          builder: (context, snapshot) {
-            final s = snapshot.data ?? shipment;
-            final rows = <(String, String)>[
-              ('Tracking ID', s.trackingId),
-              ('Status', s.status.label),
-              ('Payment', s.isPaid ? 'Paid' : 'Not paid'),
-              ('Amount', formatNaira(s.amount, trimWholeKobo: true)),
-              ('Sender', s.sender),
-              ('Receiver', s.receiver),
-              ('Pick up from', s.pickUp.name),
-              ('Delivery to', s.deliveryTo.name),
-              (
-                'Type',
-                switch (s.direction) {
-                  ShipmentDirection.export => 'Export',
-                  ShipmentDirection.import => 'Import',
-                  ShipmentDirection.local => 'Local',
-                },
-              ),
-              ('Processing time', formatDuration(s.processingHours)),
-              if (s.createdAt != null)
-                (
-                  'Created',
-                  MaterialLocalizations.of(context)
-                      .formatMediumDate(s.createdAt!),
-                ),
-            ];
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (snapshot.connectionState == ConnectionState.waiting)
-                  const LinearProgressIndicator(
-                    minHeight: 2,
-                    color: AppColors.primary,
-                    backgroundColor: Colors.transparent,
-                  ),
-                if (snapshot.hasError)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      'Showing saved details — could not refresh: ${snapshot.error}',
-                      style: AppText.style(12, color: AppColors.error),
-                    ),
-                  ),
-                for (final (label, value) in rows)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 130,
-                          child: Text(
-                            label,
-                            style: AppText.style(
-                              13,
-                              color: AppColors.textLabel,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            value,
-                            style: AppText.style(
-                              14,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ),
-      actions: [
-        TextButton(
-          style: _secondaryButtonStyle(),
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
         ),
       ],
     ),
