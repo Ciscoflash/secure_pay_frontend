@@ -487,6 +487,7 @@ void main() {
     await tester.tap(find.text('New shipment'));
     await tester.pumpAndSettle();
     expect(find.text('Create a shipment'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNWidgets(4));
     final dropdowns = find.byType(DropdownButtonFormField<String>);
     await tester.tap(dropdowns.at(1));
     await tester.pumpAndSettle();
@@ -504,6 +505,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('MAF-100-234-900'), findsWidgets);
     expect(find.text('Shipment created'), findsOneWidget);
+    expect(find.text('Ada Obi'), findsOneWidget);
+    expect(find.text('Bunmi'), findsOneWidget);
+    expect(find.text('Accra, Ghana'), findsOneWidget);
     await settleSnackbars(tester);
   });
   testWidgets('view more opens the tracking page and pays from it', (

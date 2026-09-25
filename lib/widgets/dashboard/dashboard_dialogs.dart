@@ -339,6 +339,13 @@ class _CreateShipmentDialogState extends State<_CreateShipmentDialog> {
                   color: AppColors.textPrimary,
                 ),
               ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _receiver,
+                validator: _required,
+                style: AppText.style(16, color: AppColors.textPrimary),
+                decoration: _fieldDecoration('Who is receiving the package?'),
+              ),
               const SizedBox(height: 18),
               _placeRow(
                 label: 'Pick up from',
