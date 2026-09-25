@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
-import 'sidebar.dart';
+import 'sidebar.dart' show Sidebar;
 class PageHeader extends StatelessWidget {
   const PageHeader({
     super.key,

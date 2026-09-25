@@ -2,19 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
 import 'app_icon.dart';
-enum NavDestination {
-  dashboard('Dashboard', AppIcons.dashboard),
-  shipments('Shipments', AppIcons.shipments),
-  services('Our Services', AppIcons.services),
-  notifications('Notifications', AppIcons.notifications),
-  wallet('Wallet', AppIcons.wallet),
-  addresses('My Addresses', AppIcons.addresses),
-  invite('Invite & Earn', AppIcons.invite),
-  help('Help Center', AppIcons.help);
-  const NavDestination(this.label, this.icon);
-  final String label;
-  final AppIcons icon;
-}
+import 'nav_destination.dart';
 class Sidebar extends StatelessWidget {
   const Sidebar({
     super.key,

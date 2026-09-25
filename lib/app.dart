@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'bindings/auth_binding.dart';
+import 'bindings/app_binding.dart';
 import 'bindings/dashboard_binding.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/route_guards.dart';
@@ -11,18 +11,18 @@ import 'screens/sign_in_screen.dart';
 import 'screens/sign_up_screen.dart';
 import 'screens/verify_email_screen.dart';
 import 'services/auth_service.dart';
-import 'services/dashboard_service.dart';
+import 'services/data_services.dart';
 import 'theme/app_theme.dart';
 class SecurePayApp extends StatelessWidget {
   const SecurePayApp({
     super.key,
     required this.prefs,
     this.authService,
-    this.dashboardService,
+    this.dataServices,
   });
   final SharedPreferences prefs;
   final AuthService? authService;
-  final DashboardService? dashboardService;
+  final DataServices? dataServices;
   @override
   Widget build(BuildContext context) {
     final signedIn = prefs.getString('auth_token') != null;
@@ -30,7 +30,11 @@ class SecurePayApp extends StatelessWidget {
       title: 'SecurePay',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      initialBinding: AuthBinding(prefs, service: authService),
+      initialBinding: AppBinding(
+        prefs: prefs,
+        authService: authService,
+        dataServices: dataServices,
+      ),
       initialRoute: signedIn
           ? (_cachedUserVerified() ? Routes.dashboard : Routes.verifyEmail)
           : Routes.signIn,
@@ -53,7 +57,7 @@ class SecurePayApp extends StatelessWidget {
         GetPage(
           name: Routes.dashboard,
           page: () => const DashboardScreen(),
-          binding: DashboardBinding(service: dashboardService),
+          binding: DashboardBinding(),
           middlewares: [RequireVerified()],
         ),
       ],

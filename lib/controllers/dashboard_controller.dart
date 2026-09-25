@@ -1,21 +1,22 @@
 import 'package:get/get.dart';
 import '../models/dashboard.dart';
+import '../models/section.dart';
 import '../models/shipment.dart';
 import '../services/api_client.dart';
 import '../services/dashboard_service.dart';
-import 'auth_controller.dart';
-class Section<T> {
-  const Section.loading([this.data]) : error = null, isLoading = true;
-  const Section.data(T this.data) : error = null, isLoading = false;
-  const Section.error(this.error, [this.data]) : isLoading = false;
-  final T? data;
-  final String? error;
-  final bool isLoading;
-}
-class DashboardController extends GetxController {
-  DashboardController(this._service, this._auth);
-  final DashboardService _service;
-  final AuthController _auth;
+import '../services/shipment_service.dart';
+import '../services/wallet_service.dart';
+import 'authenticated_controller.dart';
+class DashboardController extends AuthenticatedController {
+  DashboardController({
+    required this.dashboard,
+    required this.shipmentService,
+    required this.wallet,
+    required super.auth,
+  });
+  final DashboardService dashboard;
+  final ShipmentService shipmentService;
+  final WalletService wallet;
   static const recentLimit = 3;
   static const expandedLimit = 20;
   final period = Period.month.obs;
@@ -46,43 +47,45 @@ class DashboardController extends GetxController {
     showAllShipments.toggle();
     loadShipments();
   }
-  Future<void> loadOverview() =>
-      _load(overview, (token) => _service.overview(token, period.value));
+  Future<void> loadOverview() => _load(
+    overview,
+    (token) => dashboard.overview(token, period.value),
+  );
   Future<void> loadGrowth() =>
-      _load(growth, (token) => _service.growth(token, range.value));
+      _load(growth, (token) => dashboard.growth(token, range.value));
   Future<void> loadShipments() => _load(
     shipments,
-    (token) => _service.shipments(
+    (token) => shipmentService.shipments(
       token,
       limit: showAllShipments.value ? expandedLimit : recentLimit,
     ),
   );
   Future<Shipment> shipmentDetails(String id) =>
-      _authed((token) => _service.shipment(token, id));
+      authed((token) => shipmentService.shipment(token, id));
   Future<String?> payShipment(Shipment shipment) async {
     paying.add(shipment.id);
     try {
-      final result = await _authed(
-        (token) => _service.payShipment(token, shipment.id),
+      final result = await authed(
+        (token) => shipmentService.payShipment(token, shipment.id),
       );
       _replaceShipment(result.shipment);
       _setBalance(result.balance);
       return null;
-    } on ApiException catch (e) {
-      return e.message;
+    } on ApiException catch (error) {
+      return error.message;
     } finally {
       paying.remove(shipment.id);
     }
   }
   Future<String?> fundWallet(double amountNaira) async {
     try {
-      final balance = await _authed(
-        (token) => _service.fundWallet(token, amountNaira),
+      final balance = await authed(
+        (token) => wallet.fundWallet(token, amountNaira),
       );
       _setBalance(balance);
       return null;
-    } on ApiException catch (e) {
-      return e.message;
+    } on ApiException catch (error) {
+      return error.message;
     }
   }
   void _setBalance(int balance) {
@@ -107,22 +110,9 @@ class DashboardController extends GetxController {
   ) async {
     section.value = Section.loading(section.value.data);
     try {
-      section.value = Section.data(await _authed(fetch));
-    } on ApiException catch (e) {
-      section.value = Section.error(e.message, section.value.data);
-    }
-  }
-  Future<T> _authed<T>(Future<T> Function(String token) call) async {
-    final token = _auth.token;
-    if (token == null) {
-      await _auth.handleUnauthorized();
-      throw ApiException('Please sign in again.', statusCode: 401);
-    }
-    try {
-      return await call(token);
-    } on ApiException catch (e) {
-      if (e.statusCode == 401) await _auth.handleUnauthorized();
-      rethrow;
+      section.value = Section.data(await authed(fetch));
+    } on ApiException catch (error) {
+      section.value = Section.error(error.message, section.value.data);
     }
   }
 }

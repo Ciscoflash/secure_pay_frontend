@@ -1,13 +1,12 @@
 import 'package:get/get.dart';
 import '../models/notification.dart';
+import '../models/section.dart';
 import '../services/api_client.dart';
-import '../services/dashboard_service.dart';
-import 'auth_controller.dart';
-import 'dashboard_controller.dart' show Section;
-class NotificationsController extends GetxController {
-  NotificationsController(this._service, this._auth);
-  final DashboardService _service;
-  final AuthController _auth;
+import '../services/notification_service.dart';
+import 'authenticated_controller.dart';
+class NotificationsController extends AuthenticatedController {
+  NotificationsController({required this.service, required super.auth});
+  final NotificationService service;
   final page = Rx<Section<NotificationPage>>(const Section.loading());
   int get unread => page.value.data?.unread ?? 0;
   @override
@@ -18,12 +17,12 @@ class NotificationsController extends GetxController {
   Future<void> load() async {
     page.value = Section.loading(page.value.data);
     try {
-      page.value = Section.data(await _authed(_service.notifications));
-    } on ApiException catch (e) {
-      page.value = Section.error(e.message, page.value.data);
+      page.value = Section.data(await authed(service.notifications));
+    } on ApiException catch (error) {
+      page.value = Section.error(error.message, page.value.data);
     }
   }
-Future<void> markRead(AppNotification notification) async {
+  Future<void> markRead(AppNotification notification) async {
     if (notification.read) return;
     _apply(
       (p) => p.copyWith(
@@ -35,8 +34,8 @@ Future<void> markRead(AppNotification notification) async {
       ),
     );
     try {
-      await _authed(
-        (token) => _service.markNotificationRead(token, notification.id),
+      await authed(
+        (token) => service.markNotificationRead(token, notification.id),
       );
     } on ApiException {
       load();
@@ -51,7 +50,7 @@ Future<void> markRead(AppNotification notification) async {
       ),
     );
     try {
-      await _authed(_service.markAllNotificationsRead);
+      await authed(service.markAllNotificationsRead);
     } on ApiException {
       load();
     }
@@ -60,18 +59,5 @@ Future<void> markRead(AppNotification notification) async {
     final current = page.value.data;
     if (current == null) return;
     page.value = Section.data(change(current));
-  }
-  Future<T> _authed<T>(Future<T> Function(String token) call) async {
-    final token = _auth.token;
-    if (token == null) {
-      await _auth.handleUnauthorized();
-      throw ApiException('Please sign in again.', statusCode: 401);
-    }
-    try {
-      return await call(token);
-    } on ApiException catch (e) {
-      if (e.statusCode == 401) await _auth.handleUnauthorized();
-      rethrow;
-    }
   }
 }

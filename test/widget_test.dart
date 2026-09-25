@@ -13,6 +13,10 @@ import 'package:securepay/models/wallet.dart';
 import 'package:securepay/services/api_client.dart';
 import 'package:securepay/services/auth_service.dart';
 import 'package:securepay/services/dashboard_service.dart';
+import 'package:securepay/services/data_services.dart';
+import 'package:securepay/services/notification_service.dart';
+import 'package:securepay/services/shipment_service.dart';
+import 'package:securepay/services/wallet_service.dart';
 const _user = AuthUser(
   id: 'u1',
   name: 'Ada Obi',
@@ -53,13 +57,17 @@ Shipment _shipment(String id, {required bool paid}) => Shipment(
   processingHours: 10,
   isPaid: paid,
 );
-class FakeDashboardService extends DashboardService {
+class TestData {
   int balance = 300000028;
   int unread = 0;
   final items = [_shipment('291', paid: true), _shipment('292', paid: false)];
+}
+class FakeDashboardService extends DashboardService {
+  FakeDashboardService(this.data);
+  final TestData data;
   @override
   Future<Overview> overview(String token, Period period) async => Overview(
-    balance: balance,
+    balance: data.balance,
     shipments: const StatValue(current: 34, previous: 4, changePct: 750),
     exports: const StatValue(current: 16, previous: 26, changePct: -38),
     imports: const StatValue(current: 12, previous: 0),
@@ -69,26 +77,34 @@ class FakeDashboardService extends DashboardService {
     labels: [for (var i = 1; i <= 12; i++) '$i'],
     values: const [28, 33, 30, 36, 34, 44, 32, 49, 33, 0, 0, 0],
   );
+}
+class FakeShipmentService extends ShipmentService {
+  FakeShipmentService(this.data);
+  final TestData data;
   @override
   Future<ShipmentPage> shipments(
     String token, {
     int page = 1,
     int limit = 3,
-  }) async => ShipmentPage(items: List.of(items), total: items.length);
+  }) async => ShipmentPage(items: List.of(data.items), total: data.items.length);
   @override
   Future<PaymentResult> payShipment(String token, String id) async {
     final paid = _shipment(id, paid: true);
-    balance -= paid.amount;
-    return PaymentResult(shipment: paid, balance: balance);
+    data.balance -= paid.amount;
+    return PaymentResult(shipment: paid, balance: data.balance);
   }
+}
+class FakeWalletService extends WalletService {
+  FakeWalletService(this.data);
+  final TestData data;
   @override
   Future<int> fundWallet(String token, double amountNaira) async {
-    balance += (amountNaira * 100).round();
-    return balance;
+    data.balance += (amountNaira * 100).round();
+    return data.balance;
   }
   @override
   Future<WalletAccount> wallet(String token) async => WalletAccount(
-    balance: balance,
+    balance: data.balance,
     accountNumber: '1234567890',
     bankName: 'SecurePay MFB',
     transactions: const [
@@ -101,20 +117,46 @@ class FakeDashboardService extends DashboardService {
       ),
     ],
   );
+}
+class FakeNotificationService extends NotificationService {
+  FakeNotificationService(this.data);
+  final TestData data;
   @override
   Future<NotificationPage> notifications(String token) async =>
-      NotificationPage(items: [], unread: unread);
+      NotificationPage(items: [], unread: data.unread);
   @override
   Future<void> markNotificationRead(String token, String id) async {}
   @override
   Future<void> markAllNotificationsRead(String token) async {}
 }
+class FakeServices extends DataServices {
+  FakeServices(this.data)
+    : _dashboard = FakeDashboardService(data),
+      _shipments = FakeShipmentService(data),
+      _wallet = FakeWalletService(data),
+      _notifications = FakeNotificationService(data);
+  final TestData data;
+  final FakeDashboardService _dashboard;
+  final FakeShipmentService _shipments;
+  final FakeWalletService _wallet;
+  final FakeNotificationService _notifications;
+  @override
+  DashboardService get dashboard => _dashboard;
+  @override
+  ShipmentService get shipments => _shipments;
+  @override
+  WalletService get wallet => _wallet;
+  @override
+  NotificationService get notifications => _notifications;
+}
 void main() {
   late FakeAuthService auth;
-  late FakeDashboardService dashboard;
+  late TestData data;
+  late FakeServices services;
   setUp(() {
     auth = FakeAuthService();
-    dashboard = FakeDashboardService();
+    data = TestData();
+    services = FakeServices(data);
   });
   tearDown(Get.reset);
   Future<void> pumpApp(
@@ -135,7 +177,7 @@ void main() {
       SecurePayApp(
         prefs: prefs,
         authService: auth,
-        dashboardService: dashboard,
+        dataServices: services,
       ),
     );
     await tester.pumpAndSettle();
@@ -315,7 +357,7 @@ void main() {
     expect(find.text('No notifications yet'), findsOneWidget);
   });
   testWidgets('unread notifications show a sidebar badge', (tester) async {
-    dashboard.unread = 3;
+    data.unread = 3;
     await pumpApp(tester, stored: {'auth_token': 'tok'});
     expect(find.text('3'), findsOneWidget);
   });

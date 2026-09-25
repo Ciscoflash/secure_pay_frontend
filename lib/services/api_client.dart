@@ -16,6 +16,13 @@ class ApiClient {
   final String baseUrl;
   final http.Client _client;
   static const _timeout = Duration(seconds: 20);
+  static Map<String, dynamic> dataOf(Map<String, dynamic> envelope) {
+    final data = envelope['data'];
+    if (data is! Map<String, dynamic>) {
+      throw ApiException('Unexpected response from the server.');
+    }
+    return data;
+  }
   Future<Map<String, dynamic>> post(
     String path,
     Map<String, dynamic> body, {

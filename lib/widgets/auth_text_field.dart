@@ -121,7 +121,7 @@ class _PasswordFieldState extends State<PasswordField> {
         onFieldSubmitted: widget.onFieldSubmitted,
         style: _inputTextStyle,
         decoration: _decoration(
-          hint: 'Enter Passwoord',
+          hint: 'Enter Password',
           suffix: Padding(
             padding: const EdgeInsets.only(right: 4),
             child: IconButton(

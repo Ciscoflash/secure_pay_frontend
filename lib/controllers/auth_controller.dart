@@ -5,6 +5,7 @@ import '../models/user.dart';
 import '../screens/routes.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
+import '../utils/feedback.dart';
 class AuthController extends GetxController {
   AuthController(this._service, this._prefs) {
     _restoreSession();
@@ -17,6 +18,7 @@ class AuthController extends GetxController {
   final _user = Rxn<AuthUser>();
   final isLoading = false.obs;
   final errorMessage = RxnString();
+  final demoVerificationCode = RxnString();
   String? get token => _token.value;
   AuthUser? get user => _user.value;
   bool get isAuthenticated => _token.value != null;
@@ -29,6 +31,7 @@ class AuthController extends GetxController {
     try {
       final user = await _service.verifyEmail(code: code, token: token);
       await _persistSession(token, user);
+      demoVerificationCode.value = null;
       return true;
     } on ApiException catch (error) {
       errorMessage.value = error.message;
@@ -46,7 +49,8 @@ class AuthController extends GetxController {
     isLoading.value = true;
     errorMessage.value = null;
     try {
-      await _service.resendVerification(token: token);
+      final code = await _service.resendVerification(token: token);
+      demoVerificationCode.value = code;
       return true;
     } on ApiException catch (error) {
       errorMessage.value = error.message;
@@ -97,11 +101,7 @@ class AuthController extends GetxController {
     if (!isAuthenticated) return;
     await logout();
     Get.offAllNamed(Routes.signIn);
-    Get.snackbar(
-      'Session expired',
-      'Please sign in again.',
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    showAppSnackbar('Session expired', 'Please sign in again.');
   }
   Future<bool> _run(Future<AuthResult> Function() call) async {
     isLoading.value = true;
@@ -109,6 +109,9 @@ class AuthController extends GetxController {
     try {
       final result = await call();
       await _persistSession(result.token, result.user);
+      if (result.verificationCode != null) {
+        demoVerificationCode.value = result.verificationCode;
+      }
       return true;
     } on ApiException catch (error) {
       errorMessage.value = error.message;
@@ -142,6 +145,7 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     _token.value = null;
     _user.value = null;
+    demoVerificationCode.value = null;
     await _prefs.remove(_tokenKey);
     await _prefs.remove(_userKey);
   }

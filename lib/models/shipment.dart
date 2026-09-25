@@ -12,6 +12,16 @@ enum ShipmentStatus {
   );
 }
 enum ShipmentDirection { export, import, local }
+class ShipmentPage {
+  const ShipmentPage({required this.items, required this.total});
+  final List<Shipment> items;
+  final int total;
+}
+class PaymentResult {
+  const PaymentResult({required this.shipment, required this.balance});
+  final Shipment shipment;
+  final int balance;
+}
 class Place {
   const Place(this.name, {this.countryCode = 'NG'});
   final String name;

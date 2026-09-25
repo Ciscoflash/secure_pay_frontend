@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
+import '../utils/feedback.dart';
 import '../utils/password_policy.dart';
 import '../utils/validators.dart';
 import '../widgets/auth_layout.dart';
@@ -46,10 +47,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       password: _password.text,
     );
     if (!success) {
-      Get.snackbar(
+      showAppSnackbar(
         'Sign up failed',
         _auth.errorMessage.value ?? 'Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
+        error: true,
       );
       return;
     }

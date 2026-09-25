@@ -16,6 +16,18 @@ In VS Code, the "SecurePay (Chrome)" launch configuration passes the file
 automatically. Without the flag the app falls back to
 `http://localhost:5001/api`.
 
+## Deploying to Vercel
+
+Vercel can't build Flutter, so the app is built locally and uploaded as a
+static site (project `securepay`, https://securepay-seven.vercel.app):
+
+```sh
+./deploy_web.sh           # production
+./deploy_web.sh preview   # preview URL
+```
+
+`API_BASE_URL` in `.env` is baked into the build, so redeploy after changing it.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

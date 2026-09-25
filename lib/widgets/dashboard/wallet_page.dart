@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../controllers/dashboard_controller.dart' show Section;
 import '../../controllers/wallet_controller.dart';
+import '../../models/section.dart';
 import '../../models/wallet.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text.dart';
+import '../../utils/feedback.dart';
 import '../../utils/formatters.dart';
 import 'app_icon.dart';
 import 'dashboard_dialogs.dart' show showFundWalletDialog;
@@ -23,23 +24,10 @@ class _WalletPageState extends State<WalletPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _ctrl.load());
   }
-  void _toast(String title, String message, {bool error = false}) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      maxWidth: 480,
-      margin: const EdgeInsets.all(16),
-      backgroundColor: error ? const Color(0xFFFDECEC) : AppColors.surface,
-      colorText: AppColors.textPrimary,
-      borderColor: error ? AppColors.error : AppColors.outline,
-      borderWidth: 1,
-    );
-  }
   Future<void> _fund() async {
     final funded = await showFundWalletDialog(context, onSubmit: _ctrl.fundWallet);
     if (funded == null) return;
-    _toast(
+    showAppSnackbar(
       'Wallet funded',
       '${formatNaira(funded)} was added to your wallet.',
     );
@@ -202,17 +190,7 @@ class _AccountCardState extends State<AccountCard> {
     await Clipboard.setData(ClipboardData(text: widget.account.accountNumber));
     if (!mounted) return;
     setState(() => _copied = true);
-    Get.snackbar(
-      'Copied',
-      'Account number copied to your clipboard.',
-      snackPosition: SnackPosition.BOTTOM,
-      maxWidth: 480,
-      margin: const EdgeInsets.all(16),
-      backgroundColor: AppColors.surface,
-      colorText: AppColors.textPrimary,
-      borderColor: AppColors.outline,
-      borderWidth: 1,
-    );
+    showAppSnackbar('Copied', 'Account number copied to your clipboard.');
   }
 }
 class _CopyNumberButton extends StatelessWidget {

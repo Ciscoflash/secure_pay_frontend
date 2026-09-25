@@ -1,9 +1,14 @@
 import '../models/user.dart';
 import 'api_client.dart';
 class AuthResult {
-  const AuthResult({required this.token, required this.user});
+  const AuthResult({
+    required this.token,
+    required this.user,
+    this.verificationCode,
+  });
   final String token;
   final AuthUser user;
+  final String? verificationCode;
 }
 class AuthService {
   AuthService({ApiClient? client}) : _client = client ?? ApiClient();
@@ -42,33 +47,28 @@ class AuthService {
       {'code': code},
       token: token,
     );
-    final data = envelope['data'];
-    if (data is! Map<String, dynamic>) {
-      throw ApiException('Unexpected response from the server.');
-    }
-    return AuthUser.fromJson(data);
+    return AuthUser.fromJson(ApiClient.dataOf(envelope));
   }
-  Future<void> resendVerification({required String token}) async {
-    await _client.post('/auth/resend-verification', const {}, token: token);
+  Future<String?> resendVerification({required String token}) async {
+    final envelope = await _client.post(
+      '/auth/resend-verification',
+      const {},
+      token: token,
+    );
+    return ApiClient.dataOf(envelope)['verificationCode']?.toString();
   }
   Future<AuthUser> me(String token) async {
     final envelope = await _client.get('/auth/me', token: token);
-    final data = envelope['data'];
-    if (data is! Map<String, dynamic>) {
-      throw ApiException('Unexpected response from the server.');
-    }
-    return AuthUser.fromJson(data);
+    return AuthUser.fromJson(ApiClient.dataOf(envelope));
   }
   AuthResult _toResult(Map<String, dynamic> envelope) {
-    final data = envelope['data'];
-    if (data is! Map<String, dynamic>) {
-      throw ApiException('Unexpected response from the server.');
-    }
+    final data = ApiClient.dataOf(envelope);
     return AuthResult(
       token: data['token']?.toString() ?? '',
       user: AuthUser.fromJson(
         (data['user'] as Map<String, dynamic>?) ?? const {},
       ),
+      verificationCode: data['verificationCode']?.toString(),
     );
   }
 }

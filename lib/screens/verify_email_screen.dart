@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text.dart';
+import '../utils/feedback.dart';
 import '../widgets/auth_layout.dart';
 import '../widgets/inline_link_text.dart';
 import '../widgets/primary_button.dart';
@@ -40,10 +41,10 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     final success = await _auth.verifyEmail(_code.text.trim());
     if (!mounted) return;
     if (!success) {
-      Get.snackbar(
+      showAppSnackbar(
         'Verification failed',
         _auth.errorMessage.value ?? 'Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
+        error: true,
       );
       return;
     }
@@ -52,17 +53,21 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   Future<void> _resend() async {
     final success = await _auth.resendVerification();
     if (!mounted) return;
-    Get.snackbar(
+    showAppSnackbar(
       success ? 'Code sent' : 'Could not send code',
       success
-          ? 'A new verification code was sent to your email.'
+          ? 'A new verification code was generated and shown below.'
           : _auth.errorMessage.value ?? 'Please try again.',
-      snackPosition: SnackPosition.BOTTOM,
+      error: !success,
     );
   }
   Future<void> _signOut() async {
     await _auth.logout();
     Get.offAllNamed(Routes.signIn);
+  }
+  void _fillDemoCode(String? code) {
+    if (code == null) return;
+    _code.text = code;
   }
   @override
   Widget build(BuildContext context) {
@@ -90,6 +95,16 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   ],
                 ),
               ),
+              Obx(() {
+                final code = _auth.demoVerificationCode.value;
+                return Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: _DemoCodeCard(
+                    code: code,
+                    onFill: () => _fillDemoCode(code),
+                  ),
+                );
+              }),
               const SizedBox(height: 32),
               TextFormField(
                 controller: _code,
@@ -167,6 +182,73 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   TextSegment.link('Sign out', onTap: _signOut),
                 ],
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+class _DemoCodeCard extends StatelessWidget {
+  const _DemoCodeCard({required this.code, required this.onFill});
+  final String? code;
+  final VoidCallback onFill;
+  @override
+  Widget build(BuildContext context) {
+    final value = code;
+    final hasCode = value != null && value.isNotEmpty;
+    return Material(
+      color: const Color(0xFFEDEFFB),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: hasCode ? onFill : null,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Icon(
+                hasCode ? Icons.verified_user_outlined : Icons.info_outline,
+                color: AppColors.primary,
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Demo mode',
+                      style: AppText.style(
+                        13,
+                        weight: 600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      hasCode
+                          ? 'Your verification code is $code. Tap to use it.'
+                          : 'No code in this session. Resend to generate a new one.',
+                      style: AppText.style(
+                        13,
+                        color: AppColors.textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (hasCode) ...[
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: onFill,
+                  child: const Text(
+                    'Use code',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

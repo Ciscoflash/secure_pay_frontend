@@ -3,29 +3,25 @@ import '../controllers/auth_controller.dart';
 import '../controllers/dashboard_controller.dart';
 import '../controllers/notifications_controller.dart';
 import '../controllers/wallet_controller.dart';
-import '../services/dashboard_service.dart';
+import '../services/data_services.dart';
 class DashboardBinding extends Bindings {
-  DashboardBinding({this.service});
-  final DashboardService? service;
   @override
   void dependencies() {
+    final services = Get.find<DataServices>();
+    final auth = Get.find<AuthController>();
     Get.lazyPut(
       () => DashboardController(
-        service ?? DashboardService(),
-        Get.find<AuthController>(),
+        dashboard: services.dashboard,
+        shipmentService: services.shipments,
+        wallet: services.wallet,
+        auth: auth,
       ),
     );
     Get.lazyPut(
-      () => NotificationsController(
-        service ?? DashboardService(),
-        Get.find<AuthController>(),
-      ),
+      () => NotificationsController(service: services.notifications, auth: auth),
     );
     Get.lazyPut(
-      () => WalletController(
-        service ?? DashboardService(),
-        Get.find<AuthController>(),
-      ),
+      () => WalletController(service: services.wallet, auth: auth),
     );
   }
 }
